@@ -6,17 +6,21 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Null;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.data.history.RevisionMetadata;
+import pl.ib.beauty.model.dao.Role;
 import pl.ib.beauty.validator.PasswordValid;
 import pl.ib.beauty.validator.group.Create;
 
+import java.util.List;
+
+@EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @PasswordValid(groups = Create.class)
 public class UserDto extends AuditableDto {
@@ -35,4 +39,6 @@ public class UserDto extends AuditableDto {
     private String confirmPassword;
     private Integer revisionNumber;
     private RevisionMetadata.RevisionType revisionType;
+    private List<String> roles;
+    private boolean isTeacher;
 }

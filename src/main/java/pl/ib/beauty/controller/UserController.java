@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.ib.beauty.mapper.UserMapper;
+import pl.ib.beauty.model.dao.User;
 import pl.ib.beauty.model.dto.UserDto;
 import pl.ib.beauty.service.UserService;
 import pl.ib.beauty.validator.group.Create;
@@ -29,16 +30,11 @@ public class UserController {
         return userService.getPage(PageRequest.of(page, size)).map(userMapper::userToDto);
     }
 
-    @GetMapping("{id}")
-    public UserDto findUserById(@PathVariable Long id) {
-        return userMapper.userToDto(userService.getById(id));
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(Create.class)
     public UserDto saveUser(@RequestBody @Valid UserDto user) {
-        return userMapper.userToDto(userService.save(userMapper.userDtoToUser(user)));
+        return userMapper.userToDto(userService.save(userMapper.userDtoToUser(user),user.isTeacher()));
     }
 
 
@@ -53,5 +49,15 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUserById(@PathVariable Long id) {
         userService.deleteById(id);
+    }
+
+    @GetMapping("/current")
+    public UserDto getCurrentLoginUser() {
+        return userMapper.userToDto(userService.currentLoginUser());
+    }
+
+    @GetMapping("{id}")
+    public UserDto findUserById(@PathVariable Long id) {
+        return userMapper.userToDto(userService.getById(id));
     }
 }

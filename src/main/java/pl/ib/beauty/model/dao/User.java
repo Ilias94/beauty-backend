@@ -1,20 +1,19 @@
 package pl.ib.beauty.model.dao;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @SuperBuilder
 @Data
-@Builder
 @Audited
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,8 +27,15 @@ public class User extends Auditable {
     private String email;
     @NotAudited
     private String password;
-
     @ManyToMany
     @JoinTable(name = "user_role", inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<Role> roleList;
+    @OneToMany(mappedBy = "creator")
+    @NotAudited
+    private List<Course> createdCourses;
+    @ManyToMany
+    @NotAudited
+    @JoinTable(name = "course_participants", joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "course_id"))
+    private Set<Course> coursesParticipating = new HashSet<>();
 }

@@ -25,8 +25,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 //    private final MailService mailService;
 
-    public User save(User user) {
-        roleRepository.findByName("USER").ifPresent(role -> user.setRoleList(Collections.singletonList(role)));
+    public User save(User user, boolean isTeacher) {
+        roleRepository.findByName(isTeacher ? "TEACHER" : "USER").ifPresent(role -> user.setRoleList(Collections.singletonList(role)));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         Map<String, Object> variables = new HashMap<>();
@@ -61,8 +61,10 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    @Transactional
     public User currentLoginUser() {
         String userEmail = SecurityUtils.getCurrentUserEmail();
+        System.out.println(userEmail);
         return userRepository.findByEmail(userEmail).orElseThrow(EntityNotFoundException::new);
     }
 }

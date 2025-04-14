@@ -1,0 +1,1 @@
+INSERT INTO `users` VALUES (1,'test@test.pl','Maciej','Szlis','$2a$10$gHHV/lUpd8uxllW.CMLFvOBzVdLmAWTw7U.iEOH/HqAo.VQafpxcC');

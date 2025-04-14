@@ -41,4 +41,5 @@ public class UserDto extends AuditableDto {
     private RevisionMetadata.RevisionType revisionType;
     private List<String> roles;
     private boolean isTeacher;
+    private String fileName;
 }

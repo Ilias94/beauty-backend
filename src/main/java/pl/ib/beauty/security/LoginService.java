@@ -21,17 +21,15 @@ import java.util.stream.Collectors;
 public class LoginService {
     private final AuthenticationManager authenticationManager;
     private final JwtEncoder jwtEncoder;
+    private final TokenService tokenService;
 
     public TokenDto login(LoginDto loginDto) {
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
         Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-        JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
-                .expiresAt(Instant.now().plus(1, ChronoUnit.DAYS))
-                .subject(loginDto.getEmail())
-                .claim("scope", authentication.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.joining(" ")))
-                .build();
+        String roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(" "));
+        JwtClaimsSet jwtClaimsSet = tokenService.getJwtClaimsSet(loginDto.getEmail(), roles);
         String token = jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).getTokenValue();
         return new TokenDto(token);
     }

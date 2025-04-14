@@ -16,8 +16,8 @@ import java.util.Set;
 @Data
 @Audited
 @NoArgsConstructor
-@AllArgsConstructor
-@Table(indexes = @Index(name = "idx_email", columnList = "email", unique = true))
+ @AllArgsConstructor
+@Table(name = "users", indexes = @Index(name = "idx_email", columnList = "email", unique = true))
 public class User extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,9 +27,9 @@ public class User extends Auditable {
     private String email;
     @NotAudited
     private String password;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role", inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private List<Role> roleList;
+    private Set<Role> roleList;
     @OneToMany(mappedBy = "creator")
     @NotAudited
     private List<Course> createdCourses;
@@ -38,4 +38,6 @@ public class User extends Auditable {
     @JoinTable(name = "course_participants", joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "course_id"))
     private Set<Course> coursesParticipating = new HashSet<>();
+    private String fileName;
+    private String imagePath;
 }

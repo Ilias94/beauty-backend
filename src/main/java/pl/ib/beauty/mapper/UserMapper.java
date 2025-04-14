@@ -8,6 +8,7 @@ import pl.ib.beauty.model.dao.User;
 import pl.ib.beauty.model.dto.UserDto;
 
 import java.util.List;
+import java.util.Set;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper extends AuditableMapper<User, UserDto> {
@@ -18,7 +19,7 @@ public interface UserMapper extends AuditableMapper<User, UserDto> {
     User userDtoToUser(UserDto userDto);
 
     @Named("listRoleToNames")
-    default List<String> listRoleToNames(List<Role> roleList) {
+    default List<String> listRoleToNames(Set<Role> roleList) {
         if (roleList == null) {
             return null;
         }

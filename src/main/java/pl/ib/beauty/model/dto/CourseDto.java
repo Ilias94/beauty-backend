@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.ib.beauty.model.dao.Category;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -24,7 +25,9 @@ public class CourseDto {
     private LocalDateTime endDate;
 
     private int maxParticipants;
-    private Long creatorId;
+    private UserDto creator;
     private AddressDto address;
-    private Category category;
+    private CategoryDto category;
+    private Double rating;
+    private BigDecimal price;
 }

@@ -54,4 +54,6 @@ class RatingControllerTest extends MySqlTestContainer {
                 .andExpect(jsonPath("$.value").value(4))
                 .andExpect(jsonPath("$.courseId").value(13));
     }
+
+
 }

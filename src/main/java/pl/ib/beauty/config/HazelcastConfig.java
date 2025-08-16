@@ -19,7 +19,7 @@ public class HazelcastConfig {
         EvictionConfig evictionConfig = new EvictionConfig();
         evictionConfig.setEvictionPolicy(EvictionPolicy.LRU);
         mapConfig.setEvictionConfig(evictionConfig);
-        config.getSerializationConfig().addDataSerializableFactory(1, (int id) -> (id == 1) ? new Course() : null);
+        config.getSerializationConfig().addDataSerializableFactory(1, new MyDataSerializableFactory());
         return config;
     }
 }

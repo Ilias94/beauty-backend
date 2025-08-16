@@ -4,9 +4,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.ib.beauty.mapper.CategoryMapper;
 import pl.ib.beauty.model.dao.Category;
-import pl.ib.beauty.model.dto.CategoryDto;
+import pl.ib.beauty.model.dto.CategoryDtoRequest;
 import pl.ib.beauty.repository.CategoryRepository;
 
 import java.util.List;
@@ -15,37 +14,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryService {
     private static final String ENTITY_NOT_FOUND_MESSAGE = "Category not found with id: ";
-    private final CategoryMapper categoryMapper;
     private final CategoryRepository categoryRepository;
 
-    public List<CategoryDto> getAllCategories() {
-        List<Category> categories = categoryRepository.findAll();
-        return categories.stream()
-                .map(categoryMapper::categoryToCategoryDto)
-                .toList();
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
+
     }
 
-    public CategoryDto getCategoryById(Long id) {
-        Category category = categoryRepository.findById(id)
+    public Category getCategoryById(Long id) {
+        return categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ENTITY_NOT_FOUND_MESSAGE + id));
-        return categoryMapper.categoryToCategoryDto(category);
     }
 
     @Transactional
-    public CategoryDto createCategory(CategoryDto categoryDto) {
-        Category category = categoryMapper.categoryDtoToCategory(categoryDto);
-        category = categoryRepository.save(category);
-        return categoryMapper.categoryToCategoryDto(category);
+    public Category createCategory(Category category) {
+        return categoryRepository.save(category);
     }
 
     @Transactional
-    public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
+    public Category updateCategory(Long id, CategoryDtoRequest categoryDtoRequest) {
         Category existingCategory = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ENTITY_NOT_FOUND_MESSAGE + id));
 
-        existingCategory.setLabel(categoryDto.getLabel());
-        Category updatedCategory = categoryRepository.save(existingCategory);
-        return categoryMapper.categoryToCategoryDto(updatedCategory);
+        existingCategory.setLabel(categoryDtoRequest.label());
+        return categoryRepository.save(existingCategory);
     }
 
     @Transactional

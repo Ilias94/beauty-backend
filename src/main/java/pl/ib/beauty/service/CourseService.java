@@ -1,5 +1,6 @@
 package pl.ib.beauty.service;
 
+import com.google.maps.model.LatLng;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,14 +10,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.ib.beauty.mapper.CourseMapper;
 import pl.ib.beauty.model.dao.Category;
 import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.User;
 import pl.ib.beauty.repository.CategoryRepository;
 import pl.ib.beauty.repository.CourseRepository;
 
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,10 +26,18 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final CategoryRepository categoryRepository;
     private final UserService userService;
+    private final GeoCodingService geoCodingService;
 
     @Transactional(readOnly = true)
     public Page<Course> getAllCourses(Pageable pageable) {
         return courseRepository.findAll(pageable);
+    }
+
+    @Transactional
+    public List<User> getCourseParticipants(Long courseId) {
+        Optional<Course> courseOptional = courseRepository.findById(courseId);
+        return courseOptional.map(Course::getParticipants)
+                .orElseGet(ArrayList::new);
     }
 
     @Transactional
@@ -68,6 +76,14 @@ public class CourseService {
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with label: " + label));
         course.setCategory(category);
         course.setCreator(userService.currentLoginUser());
+        String address = course.getAddress().getStreet() + ", " + course.getAddress().getStreetNumber() + ", " +
+                course.getAddress().getApartmentNumber() + ", " + course.getAddress().getCity() + ", " + course.getAddress().getPostalCode();
+        LatLng latLng = geoCodingService.getGeoCoding(address);
+        if (null != latLng) {
+            course.getAddress().setLat(latLng.lat);
+            course.getAddress().setLng(latLng.lng);
+        }
+
         return courseRepository.save(course);
     }
 

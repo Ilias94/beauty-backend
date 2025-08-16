@@ -11,9 +11,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pl.ib.beauty.mapper.UserMapper;
-import pl.ib.beauty.model.dao.User;
-import pl.ib.beauty.model.dto.ChangePasswordRequestDto;
-import pl.ib.beauty.model.dto.UserDto;
+import pl.ib.beauty.model.dto.ChangePasswordDtoRequest;
+import pl.ib.beauty.model.dto.UserDtoRequest;
+import pl.ib.beauty.model.dto.UserDtoResponse;
 import pl.ib.beauty.service.UserService;
 import pl.ib.beauty.validator.group.Create;
 
@@ -27,21 +27,21 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public Page<UserDto> getUsers(@RequestParam int page, @RequestParam int size) {
+    public Page<UserDtoResponse> getUsers(@RequestParam int page, @RequestParam int size) {
         return userService.getPage(PageRequest.of(page, size)).map(userMapper::userToDto);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(Create.class)
-    public UserDto saveUser(@RequestPart @Valid UserDto user, @RequestPart(required = false) MultipartFile file) {
+    public UserDtoResponse saveUser(@RequestPart @Valid UserDtoRequest user, @RequestPart(required = false) MultipartFile file) {
         return userMapper.userToDto(userService.save(userMapper.userDtoToUser(user), user.isTeacher(), file));
     }
 
 
     @PutMapping("{id}")
     @PreAuthorize("isAuthenticated() && (@securityService.hasAccessToUser(#id) || hasAuthority('SCOPE_ADMIN'))")
-    public UserDto updateUser(@RequestBody @Valid UserDto user, @PathVariable Long id) {
+    public UserDtoResponse updateUser(@RequestBody @Valid UserDtoRequest user, @PathVariable Long id) {
         return userMapper.userToDto(userService.update(userMapper.userDtoToUser(user), id));
     }
 
@@ -53,19 +53,19 @@ public class UserController {
     }
 
     @GetMapping("/current")
-    public UserDto getCurrentLoginUser() {
+    public UserDtoResponse getCurrentLoginUser() {
         return userMapper.userToDto(userService.currentLoginUser());
     }
 
     @GetMapping("{id}")
-    public UserDto findUserById(@PathVariable Long id) {
+    public UserDtoResponse findUserById(@PathVariable Long id) {
         return userMapper.userToDto(userService.getById(id));
     }
 
     @PutMapping("{id}/change-password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated() && (@securityService.hasAccessToUser(#id) || hasAuthority('SCOPE_ADMIN'))")
-    public void changePassword(@RequestBody @Valid ChangePasswordRequestDto passwordRequest) {
+    public void changePassword(@RequestBody @Valid ChangePasswordDtoRequest passwordRequest) {
         userService.changePassword(passwordRequest);
     }
 }

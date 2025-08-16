@@ -10,7 +10,9 @@ import org.hibernate.envers.NotAudited;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -37,7 +39,7 @@ public class Course implements IdentifiedDataSerializable {
 
     @ManyToMany(mappedBy = "coursesParticipating")
     @NotAudited
-    private Set<User> participants = new HashSet<>();
+    private List<User> participants = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id", referencedColumnName = "id")
@@ -67,9 +69,10 @@ public class Course implements IdentifiedDataSerializable {
         objectDataOutput.writeInt(maxParticipants);
         objectDataOutput.writeObject(rating);
         objectDataOutput.writeObject(price);
-        objectDataOutput.writeInt(maxParticipants);
         objectDataOutput.writeObject(creator.getId());
         objectDataOutput.writeObject(creator.getFileName());
+        objectDataOutput.writeObject(address);
+        objectDataOutput.writeObject(category);
     }
 
     @Override
@@ -82,17 +85,17 @@ public class Course implements IdentifiedDataSerializable {
         maxParticipants = objectDataInput.readInt();
         rating = objectDataInput.readObject();
         price = objectDataInput.readObject();
-        maxParticipants = objectDataInput.readInt();
         Long creatorId = objectDataInput.readObject();
 
 
         if (creatorId != null) {
             String filePath = objectDataInput.readObject();
-            User.builder()
+            this.creator = User.builder()
                     .id(creatorId)
                     .fileName(filePath)
                     .build();
         }
-
+        address = objectDataInput.readObject();
+        category = objectDataInput.readObject();
     }
 }

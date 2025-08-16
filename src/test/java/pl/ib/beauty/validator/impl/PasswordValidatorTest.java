@@ -1,9 +1,10 @@
 package pl.ib.beauty.validator.impl;
 
 import org.junit.jupiter.api.Test;
-import pl.ib.beauty.model.dto.UserDto;
+import pl.ib.beauty.model.dto.UserDtoRequest;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PasswordValidatorTest {
     private PasswordValidator passwordValidator = new PasswordValidator();
@@ -11,7 +12,7 @@ class PasswordValidatorTest {
     @Test
     void shouldValidPassword() {
         //given
-        UserDto user = UserDto.builder()
+        UserDtoRequest user = UserDtoRequest.builder()
                 .password("password")
                 .confirmPassword("password")
                 .build();
@@ -26,7 +27,7 @@ class PasswordValidatorTest {
     @Test
     void shouldNotValidPassword() {
         //given
-        UserDto user = UserDto.builder()
+        UserDtoRequest user = UserDtoRequest.builder()
                 .password("password")
                 .confirmPassword("password2")
                 .build();

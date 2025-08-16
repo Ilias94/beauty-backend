@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import pl.ib.beauty.model.dto.CategoryDto;
+import pl.ib.beauty.mapper.CategoryMapper;
+import pl.ib.beauty.model.dto.CategoryDtoRequest;
+import pl.ib.beauty.model.dto.CategoryDtoResponse;
 import pl.ib.beauty.service.CategoryService;
 
 import java.util.List;
@@ -16,27 +18,28 @@ import java.util.List;
 public class CategoryController {
 
     private final CategoryService categoryService;
+    private final CategoryMapper categoryMapper;
 
     @GetMapping
-    public List<CategoryDto> getAllCategories() {
-        return categoryService.getAllCategories();
+    public List<CategoryDtoResponse> getAllCategories() {
+        return categoryMapper.categoryToCategoryDto(categoryService.getAllCategories());
     }
 
     @GetMapping("/{id}")
-    public CategoryDto getCategoryById(@PathVariable Long id) {
-        return categoryService.getCategoryById(id);
+    public CategoryDtoResponse getCategoryById(@PathVariable Long id) {
+        return categoryMapper.categoryToCategoryDto(categoryService.getCategoryById(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryDto createCategory(@RequestBody @Valid CategoryDto categoryDto) {
-        return categoryService.createCategory(categoryDto);
+    public CategoryDtoResponse createCategory(@RequestBody @Valid CategoryDtoRequest categoryDtoRequest) {
+        return categoryMapper.categoryToCategoryDto(categoryService.createCategory(categoryMapper.categoryDtoToCategory(categoryDtoRequest)));
     }
 
     @PutMapping("/{id}")
-    public CategoryDto updateCategory(@PathVariable Long id, @RequestBody @Valid CategoryDto categoryDto) {
+    public CategoryDtoResponse updateCategory(@PathVariable Long id, @RequestBody @Valid CategoryDtoRequest categoryDtoRequest) {
 
-        return categoryService.updateCategory(id, categoryDto);
+        return categoryMapper.categoryToCategoryDto(categoryService.updateCategory(id, categoryDtoRequest));
     }
 
     @DeleteMapping("/{id}")

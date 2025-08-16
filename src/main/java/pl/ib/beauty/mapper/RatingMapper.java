@@ -2,9 +2,7 @@ package pl.ib.beauty.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import pl.ib.beauty.model.dao.Comment;
 import pl.ib.beauty.model.dao.Rating;
-import pl.ib.beauty.model.dto.CommentDto;
 import pl.ib.beauty.model.dto.RatingDto;
 
 @Mapper(componentModel = "spring")

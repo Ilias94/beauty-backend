@@ -5,20 +5,21 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.User;
-import pl.ib.beauty.model.dto.CourseDto;
-import pl.ib.beauty.model.dto.UserDto;
+import pl.ib.beauty.model.dto.CourseDtoRequest;
+import pl.ib.beauty.model.dto.CourseDtoResponse;
+import pl.ib.beauty.model.dto.UserDtoResponse;
 
 @Mapper(componentModel = "spring", uses = {AddressMapper.class})
 public interface CourseMapper {
     @Mapping(source = "creator", target = "creator", qualifiedByName = "creator")
-    CourseDto courseToDto(Course course);
+    CourseDtoResponse courseToDto(Course course);
 
-    Course dtoToCourse(CourseDto courseDto);
+    Course dtoToCourse(CourseDtoRequest courseDto);
 
     @Named("creator")
-    default UserDto creator(User user) {
+    default UserDtoResponse creator(User user) {
         if (user == null) return null;
-        return UserDto.builder()
+        return UserDtoResponse.builder()
                 .id(user.getId())
                 .fileName(user.getFileName())
                 .build();

@@ -7,6 +7,7 @@ import pl.ib.beauty.model.dao.Category;
 import pl.ib.beauty.model.dao.Course;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
     Page<Course> findByCategoryIdAndTitleContaining(Long categoryId, String title, Pageable pageable);

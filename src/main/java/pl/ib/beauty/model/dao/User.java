@@ -1,7 +1,10 @@
 package pl.ib.beauty.model.dao;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
@@ -16,7 +19,7 @@ import java.util.Set;
 @Data
 @Audited
 @NoArgsConstructor
- @AllArgsConstructor
+@AllArgsConstructor
 @Table(name = "users", indexes = @Index(name = "idx_email", columnList = "email", unique = true))
 public class User extends Auditable {
     @Id

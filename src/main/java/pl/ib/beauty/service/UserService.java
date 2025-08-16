@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.ib.beauty.exception.InvalidPasswordException;
 import pl.ib.beauty.model.dao.User;
-import pl.ib.beauty.model.dto.ChangePasswordRequestDto;
+import pl.ib.beauty.model.dto.ChangePasswordDtoRequest;
 import pl.ib.beauty.repository.RoleRepository;
 import pl.ib.beauty.repository.UserRepository;
 import pl.ib.beauty.security.SecurityUtils;
@@ -26,7 +26,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final FileService fileService;
     private final EmailService emailService;
-    private final TemplateService templateService;
 
     @SneakyThrows
     @Transactional
@@ -90,7 +89,7 @@ public class UserService {
     }
 
     @Transactional
-    public void changePassword(ChangePasswordRequestDto passwordRequest) {
+    public void changePassword(ChangePasswordDtoRequest passwordRequest) {
         User currentLoginUser = currentLoginUser();
 
         if (!passwordEncoder.matches(passwordRequest.getOldPassword(), currentLoginUser.getPassword())) {

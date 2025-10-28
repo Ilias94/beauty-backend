@@ -71,5 +71,7 @@ public class CourseController {
     public List<String> getAutocompleteTitle(@RequestParam String title) {
         return courseService.getAutocompleteTitle(title);
     }
+
+
 }
 

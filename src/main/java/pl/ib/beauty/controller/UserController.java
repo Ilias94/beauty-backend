@@ -16,6 +16,7 @@ import pl.ib.beauty.model.dto.UserDtoRequest;
 import pl.ib.beauty.model.dto.UserDtoResponse;
 import pl.ib.beauty.service.UserService;
 import pl.ib.beauty.validator.group.Create;
+import pl.ib.beauty.validator.impl.ExtensionValid;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,7 +35,8 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(Create.class)
-    public UserDtoResponse saveUser(@RequestPart @Valid UserDtoRequest user, @RequestPart(required = false) MultipartFile file) {
+    @Valid
+    public UserDtoResponse saveUser(@RequestPart @Valid UserDtoRequest user, @Valid @ExtensionValid(groups = Create.class, supportedExtensions = "mp4")  @RequestPart(required = false) MultipartFile file) {
         return userMapper.userToDto(userService.save(userMapper.userDtoToUser(user), user.isTeacher(), file));
     }
 

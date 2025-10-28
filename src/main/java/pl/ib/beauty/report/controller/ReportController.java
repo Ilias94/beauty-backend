@@ -1,5 +1,8 @@
 package pl.ib.beauty.report.controller;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -16,6 +19,7 @@ import pl.ib.beauty.report.service.ReportGeneratorService;
 public class ReportController {
     private final ReportGeneratorService excelGeneratorService;
 
+    @ApiResponse(content = @Content(schema = @Schema(type = "string", format = "binary")))
     @GetMapping("/excel")
     public ResponseEntity<byte[]> generateReportExcel(@RequestParam Long courseId) {
         byte[] file = excelGeneratorService.generateExcel(courseId);
@@ -26,6 +30,7 @@ public class ReportController {
         return ResponseEntity.ok().headers(httpHeaders).body(file);
     }
 
+    @ApiResponse(content = @Content(schema = @Schema(type = "string", format = "binary")))
     @GetMapping("/csv")
     public ResponseEntity<byte[]> generateReportCsv(@RequestParam Long courseId) {
 

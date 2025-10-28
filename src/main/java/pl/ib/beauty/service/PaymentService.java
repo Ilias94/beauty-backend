@@ -47,7 +47,7 @@ public class PaymentService {
         String sessionUrl = stripeService.createSession(courseById, orderId);
         return sessionUrl;
     }
-
+//todo dodac zapis uzytkownika do kursu po poprawnej platnosci
     public Optional<Payment> updateStatus(UUID orderId, Status status) {
         return paymentRepository.findByOrderId(orderId.toString())
                 .map(payment -> {

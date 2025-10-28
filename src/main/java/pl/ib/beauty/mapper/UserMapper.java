@@ -3,6 +3,7 @@ package pl.ib.beauty.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.Role;
 import pl.ib.beauty.model.dao.User;
 import pl.ib.beauty.model.dao.UserCsv;
@@ -14,8 +15,8 @@ import java.util.Set;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper extends AuditableMapper<User, UserDtoResponse> {
-    @Mapping(target = "password", ignore = true)
     @Mapping(source = "roleList", target = "roles", qualifiedByName = "listRoleToNames")
+    @Mapping(source = "createdCourses", target = "ownedCourseIds", qualifiedByName = "coursesToIds")
     UserDtoResponse userToDto(User user);
 
     User userDtoToUser(UserDtoRequest userDto);
@@ -23,10 +24,20 @@ public interface UserMapper extends AuditableMapper<User, UserDtoResponse> {
     @Named("listRoleToNames")
     default List<String> listRoleToNames(Set<Role> roleList) {
         if (roleList == null) {
-            return null;
+            return List.of();
         }
         return roleList.stream()
                 .map(Role::getName)
+                .toList();
+    }
+
+    @Named("coursesToIds")
+    default List<Long> courseToIds(List<Course> createdCourses) {
+        if (createdCourses == null) {
+            return List.of();
+        }
+        return createdCourses.stream()
+                .map(Course::getId)
                 .toList();
     }
 

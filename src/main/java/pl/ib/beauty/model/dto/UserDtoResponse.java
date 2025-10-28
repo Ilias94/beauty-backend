@@ -18,20 +18,13 @@ import java.util.List;
 @AllArgsConstructor
 public class UserDtoResponse extends AuditableDto {
     private Long id;
-    @NotBlank
     private String firstName;
-    @NotBlank
     private String lastName;
-    @NotBlank
-    @Email
     private String email;
-    @NotBlank(groups = Create.class)
-    @Length(min = 5, max = 255, groups = Create.class)
-    private String password;
-    private String confirmPassword;
     private Integer revisionNumber;
     private RevisionMetadata.RevisionType revisionType;
     private List<String> roles;
     private boolean isTeacher;
     private String fileName;
+    private List<Long> ownedCourseIds;
 }

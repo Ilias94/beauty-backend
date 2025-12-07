@@ -15,6 +15,7 @@ import pl.ib.beauty.model.dto.CourseDtoRequest;
 import pl.ib.beauty.model.dto.CourseDtoResponse;
 import pl.ib.beauty.service.CourseService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -33,8 +34,8 @@ public class CourseController {
                                               @RequestParam(required = false) String title,
                                               @RequestParam(required = false, defaultValue = "startDate") String sortBy,
                                               @RequestParam(required = false) Sort.Direction sortDirection,
-                                              @RequestParam(required = false) boolean isCurrentCreator,
-                                              @RequestParam(required = false) boolean isCurrentStudent) {
+                                              @RequestParam(required = false) Boolean isCurrentCreator,
+                                              @RequestParam(required = false) Boolean isCurrentStudent) {
         Pageable pageable = pageableMapper.createPageable(page, size, sortDirection, sortBy);
         return courseService.getCoursesByCategoryAndTitle(categoryId, title, pageable, isCurrentCreator, isCurrentStudent)
                 .map(courseMapper::courseToDto);
@@ -57,7 +58,7 @@ public class CourseController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or @securityService.isCourseCreator(#id)" )
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or @securityService.isCourseCreator(#id)")
     public void deleteCourse(@PathVariable Long id) {
         courseService.deleteCourseById(id);
     }
@@ -72,6 +73,9 @@ public class CourseController {
         return courseService.getAutocompleteTitle(title);
     }
 
-
+    @GetMapping("/dates-filter")
+    public List<CourseDtoResponse> filterCoursesByDate(@RequestParam LocalDate from, @RequestParam LocalDate to) {
+        return courseMapper.toDtoList(courseService.findByDate(from, to));
+    }
 }
 

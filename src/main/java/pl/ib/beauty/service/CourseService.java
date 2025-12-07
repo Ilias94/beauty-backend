@@ -16,7 +16,12 @@ import pl.ib.beauty.model.dao.User;
 import pl.ib.beauty.repository.CategoryRepository;
 import pl.ib.beauty.repository.CourseRepository;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -126,5 +131,13 @@ public class CourseService {
                 .map(Course::getTitle)
                 .distinct()
                 .toList();
+    }
+
+    public List<Course> findByDate(LocalDate from, LocalDate to) {
+        return courseRepository.findByStartDateBetweenOrEndDateBetween(
+                LocalDateTime.of(from, LocalTime.MIN),
+                LocalDateTime.of(from, LocalTime.MAX),
+                LocalDateTime.of(to, LocalTime.MIN),
+                LocalDateTime.of(to, LocalTime.MAX));
     }
 }

@@ -9,10 +9,14 @@ import pl.ib.beauty.model.dto.CourseDtoRequest;
 import pl.ib.beauty.model.dto.CourseDtoResponse;
 import pl.ib.beauty.model.dto.UserDtoResponse;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring", uses = {AddressMapper.class})
 public interface CourseMapper {
     @Mapping(source = "creator", target = "creator", qualifiedByName = "creator")
     CourseDtoResponse courseToDto(Course course);
+
+    List<CourseDtoResponse> toDtoList(List<Course> courses);
 
     Course dtoToCourse(CourseDtoRequest courseDto);
 

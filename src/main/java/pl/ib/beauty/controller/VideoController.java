@@ -25,14 +25,7 @@ public class VideoController {
         return videoService.getVideosForCourse(courseId);
     }
 
-
-//    @PostMapping("/{courseId}")
-//    public UploadVideoDtoResponse addVideo(@PathVariable Long courseId,
-//                                           @RequestBody UploadVideoDtoRequest request) {
-//        return videoService.createVideo(courseId, request);
-//    }
-
-    @PostMapping(value = "/upload/{courseId}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @PostMapping(value = "/upload/{courseId}")
     public void uploadVideos(@PathVariable Long courseId,
                              @RequestParam @Valid List<@ExtensionValid(supportedExtensions = {"mp4", "avi"}) MultipartFile> videos) {
         videoService.uploadVideos(courseId, videos);
@@ -41,5 +34,10 @@ public class VideoController {
     @PatchMapping("/description")
     public void editDescription(@RequestBody VideoDescriptionEditRequest videoDescriptionEditRequest) {
         videoService.addVideoDescription(videoDescriptionEditRequest.videoId(), videoDescriptionEditRequest.description());
+    }
+
+    @DeleteMapping("/{videoId}")
+    public void deleteVideo(@PathVariable Long videoId) {
+        videoService.deleteVideo(videoId);
     }
 }

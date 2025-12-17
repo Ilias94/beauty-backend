@@ -1,9 +1,11 @@
 package pl.ib.beauty.service;
 
+import groovy.util.logging.Slf4j;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,8 +20,10 @@ import pl.ib.beauty.security.SecurityUtils;
 
 import java.util.*;
 
+@lombok.extern.slf4j.Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -84,7 +88,7 @@ public class UserService {
     @Transactional
     public User currentLoginUser() {
         String userEmail = SecurityUtils.getCurrentUserEmail();
-        System.out.println(userEmail);
+        log.info(userEmail);
         return userRepository.findByEmail(userEmail).orElseThrow(EntityNotFoundException::new);
     }
 

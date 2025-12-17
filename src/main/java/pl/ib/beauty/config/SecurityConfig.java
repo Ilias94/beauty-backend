@@ -13,9 +13,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import pl.ib.beauty.security.Oauth2LoginSuccessHandler;
 
-import static org.springframework.security.config.Customizer.withDefaults;
+import java.util.List;
 
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -24,6 +27,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, Oauth2LoginSuccessHandler oauth2LoginSuccessHandler) throws Exception {
         return httpSecurity
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -31,7 +35,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2Login(httpSecurityOAuth2LoginConfigurer ->
                         httpSecurityOAuth2LoginConfigurer.authorizationEndpoint(authorizationEndpointConfig ->
-                                authorizationEndpointConfig.baseUri("/api/oauth2/authorization/"))
+                                        authorizationEndpointConfig.baseUri("/api/oauth2/authorization/"))
                                 .successHandler(oauth2LoginSuccessHandler))
                 .build();
     }
@@ -45,4 +49,18 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("http://localhost:4200"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
 }

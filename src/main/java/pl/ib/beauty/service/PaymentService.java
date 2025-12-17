@@ -22,6 +22,7 @@ public class PaymentService {
     private final CourseService courseService;
     private final UserService userService;
     private final StripeService stripeService;
+    private final NotificationSocketService notificationSocketService;
 
     @SneakyThrows
     public String createPayment(Long courseId) {
@@ -47,13 +48,54 @@ public class PaymentService {
         String sessionUrl = stripeService.createSession(courseById, orderId);
         return sessionUrl;
     }
-//todo dodac zapis uzytkownika do kursu po poprawnej platnosci
+
     public Optional<Payment> updateStatus(UUID orderId, Status status) {
         return paymentRepository.findByOrderId(orderId.toString())
                 .map(payment -> {
                     payment.setStatus(status);
                     paymentRepository.save(payment);
+                    if (status == Status.SUCCESS) {
+                        registerUserToCourse(payment);
+                    }
                     return payment;
                 });
     }
+
+//    private void registerUserToCourse(Payment payment) {
+//
+//        User user = payment.getUser();
+//        Course course = payment.getCourse();
+//
+//        if (course.getParticipants().contains(user)) {
+//            return;
+//        }
+//
+//
+//        course.getParticipants().add(user);
+//        user.getCoursesParticipating().add(course);
+//
+//        courseService.saveCourse(course);
+//    }
+private void registerUserToCourse(Payment payment) {
+
+    User user = payment.getUser();
+    Course course = payment.getCourse();
+
+    if (course.getParticipants().contains(user)) {
+        return;
+    }
+
+    course.getParticipants().add(user);
+    user.getCoursesParticipating().add(course);
+
+    courseService.saveCourse(course);
+
+    // 🔔 NOTYFIKACJA
+    notificationSocketService.notifyUser(
+            course.getCreator().getId(),
+            "New sign in for course: " + course.getTitle() +
+                    " (participant: " + user.getEmail() + ")"
+    );
+}
+
 }

@@ -47,8 +47,13 @@ public class CourseService {
 
     @Transactional
     public Page<Course> getAllCurrentCreatorCourses(Pageable pageable) {
-        User currentLoginUser = userService.currentLoginUser();
+        User currentLoginUser = getUser();
         return courseRepository.findByCreatorId(currentLoginUser.getId(), pageable);
+    }
+
+    private User getUser() {
+        User currentLoginUser = userService.currentLoginUser();
+        return currentLoginUser;
     }
 
     @Transactional(readOnly = true)
@@ -134,10 +139,19 @@ public class CourseService {
     }
 
     public List<Course> findByDate(LocalDate from, LocalDate to) {
-        return courseRepository.findByStartDateBetweenOrEndDateBetween(
-                LocalDateTime.of(from, LocalTime.MIN),
-                LocalDateTime.of(from, LocalTime.MAX),
-                LocalDateTime.of(to, LocalTime.MIN),
-                LocalDateTime.of(to, LocalTime.MAX));
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
+        }
+
+        User currentLoginUser = userService.currentLoginUser();
+
+        LocalDateTime fromDateTime = from.atStartOfDay();
+        LocalDateTime toDateTime = to.atTime(LocalTime.MAX);
+        return courseRepository.findCoursesOverlapping(currentLoginUser.getId(), fromDateTime, toDateTime);
+    }
+
+    @Transactional
+    public Course saveCourse(Course course) {
+        return courseRepository.save(course);
     }
 }

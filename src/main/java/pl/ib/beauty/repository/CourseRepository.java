@@ -3,6 +3,8 @@ package pl.ib.beauty.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import pl.ib.beauty.model.dao.Course;
 
 import java.time.LocalDateTime;
@@ -21,5 +23,17 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     List<Course> findByTitleContainingIgnoreCase(String title);
 
-    List<Course> findByStartDateBetweenOrEndDateBetween(LocalDateTime fromDateStart, LocalDateTime fromDateEnd, LocalDateTime toDateStart, LocalDateTime toDateEnd);
+
+    @Query("""
+            SELECT c FROM Course c
+            WHERE c.creator.id = :creatorId
+            AND c.startDate <= :to
+            AND c.endDate >= :from
+            """)
+    List<Course> findCoursesOverlapping(
+            @Param("creatorId") Long creatorId,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to
+    );
+
 }

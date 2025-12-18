@@ -15,17 +15,22 @@ spring:
           auth: true
           starttls:
             enable: true
+
   security:
     oauth2:
-          client:
-            registration:
-              google:
-                client-id: ${GOOGLE_CLIENT_ID}
-                client-secret: ${GOOGLE_SECRET}
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_SECRET}
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
 
 jwt:
-  publicKey: classpath:public-key.pem
-  privateKey: classpath:pkcs8.key
+  privateKey: file:/etc/secrets/pkcs8.key
+  publicKey: file:/etc/secrets/public-key.pem
 
 aws:
   accessKey: ${AWS_ACCESS_KEY}
@@ -36,4 +41,7 @@ google:
 
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
-
+hazelcast:
+  network:
+    rest-api:
+      enabled: true

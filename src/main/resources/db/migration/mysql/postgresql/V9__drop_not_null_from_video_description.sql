@@ -1,0 +1,2 @@
+ALTER TABLE video
+ALTER COLUMN description DROP NOT NULL;

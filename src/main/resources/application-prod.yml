@@ -4,6 +4,10 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
+  flyway:
+    enabled: true
+    locations: classpath:db/migration/postgresql
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -28,6 +32,10 @@ spring:
     openai:
       api-key: ${OPENAI_API_KEY}
 
+  jpa:
+    hibernate:
+      ddl-auto: none
+
 jwt:
   privateKey: file:/etc/secrets/pkcs8.key
   publicKey: file:/etc/secrets/public-key.pem
@@ -41,6 +49,7 @@ google:
 
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
+
 hazelcast:
   network:
     rest-api:

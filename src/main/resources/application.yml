@@ -57,3 +57,5 @@ google:
 
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
+cors:
+  url: http://localhost:4200

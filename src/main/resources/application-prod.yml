@@ -54,3 +54,6 @@ hazelcast:
   network:
     rest-api:
       enabled: true
+cors:
+  url: https://beauty-front.onrender.com/
+

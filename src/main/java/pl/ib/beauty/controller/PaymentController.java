@@ -23,7 +23,7 @@ public class PaymentController {
 
     @PostMapping
     public CreatePaymentDtoResponse createPayment(@RequestBody CreatePaymentDtoRequest createPaymentDto) {
-        String payment = paymentService.createPayment(createPaymentDto.getCourseId());
+        String payment = paymentService.createPayment(createPaymentDto.courseId());
         return new CreatePaymentDtoResponse(payment);
     }
 

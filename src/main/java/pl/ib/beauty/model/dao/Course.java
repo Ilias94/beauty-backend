@@ -6,20 +6,22 @@ import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.envers.NotAudited;
+import pl.ib.beauty.model.CourseLevel;
+import pl.ib.beauty.model.CourseStatus;
+import pl.ib.beauty.model.CourseType;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(schema = "beautypg")
 public class Course implements IdentifiedDataSerializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,10 +34,41 @@ public class Course implements IdentifiedDataSerializable {
     private Double rating;
     private BigDecimal price;
 
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private CourseType courseType = CourseType.IN_PERSON;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private CourseLevel courseLevel = CourseLevel.BEGINNER;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private CourseStatus status = CourseStatus.PUBLISHED;
+
+    @Builder.Default
+    private String language = "pl";
+
+    @Column(columnDefinition = "TEXT")
+    private String prerequisites;
+
+    @Column(columnDefinition = "TEXT")
+    private String learningOutcomes;
+
+    @Builder.Default
+    private boolean certificate = false;
+
+    private String imageUrl;
+
     @ManyToOne
     @JoinColumn(name = "created_by_user_id")
     @NotAudited
     private User creator;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_course_id")
+    @NotAudited
+    private Course parentCourse;
 
     @ManyToMany(mappedBy = "coursesParticipating")
     @NotAudited
@@ -60,42 +93,72 @@ public class Course implements IdentifiedDataSerializable {
     }
 
     @Override
-    public void writeData(ObjectDataOutput objectDataOutput) throws IOException {
-        objectDataOutput.writeLong(id);
-        objectDataOutput.writeString(title);
-        objectDataOutput.writeString(description);
-        objectDataOutput.writeObject(startDate);
-        objectDataOutput.writeObject(endDate);
-        objectDataOutput.writeInt(maxParticipants);
-        objectDataOutput.writeObject(rating);
-        objectDataOutput.writeObject(price);
-        objectDataOutput.writeObject(creator.getId());
-        objectDataOutput.writeObject(creator.getFileName());
-        objectDataOutput.writeObject(address);
-        objectDataOutput.writeObject(category);
+    public void writeData(ObjectDataOutput out) throws IOException {
+        out.writeLong(id);
+        out.writeString(title);
+        out.writeString(description);
+        out.writeObject(startDate);
+        out.writeObject(endDate);
+        out.writeInt(maxParticipants);
+        out.writeObject(rating);
+        out.writeObject(price);
+        out.writeObject(creator.getId());
+        out.writeObject(creator.getFileName());
+        out.writeObject(address);
+        out.writeObject(category);
+        out.writeString(courseType != null ? courseType.name() : CourseType.IN_PERSON.name());
+        out.writeObject(parentCourse != null ? parentCourse.getId() : null);
+        // fields added in V28
+        out.writeString(courseLevel != null ? courseLevel.name() : CourseLevel.BEGINNER.name());
+        out.writeString(status != null ? status.name() : CourseStatus.PUBLISHED.name());
+        out.writeString(language);
+        out.writeString(prerequisites);
+        out.writeString(learningOutcomes);
+        out.writeBoolean(certificate);
+        out.writeString(imageUrl);
     }
 
     @Override
-    public void readData(ObjectDataInput objectDataInput) throws IOException {
-        id = objectDataInput.readLong();
-        title = objectDataInput.readString();
-        description = objectDataInput.readString();
-        startDate = objectDataInput.readObject();
-        endDate = objectDataInput.readObject();
-        maxParticipants = objectDataInput.readInt();
-        rating = objectDataInput.readObject();
-        price = objectDataInput.readObject();
-        Long creatorId = objectDataInput.readObject();
-
-
+    public void readData(ObjectDataInput in) throws IOException {
+        id = in.readLong();
+        title = in.readString();
+        description = in.readString();
+        startDate = in.readObject();
+        endDate = in.readObject();
+        maxParticipants = in.readInt();
+        rating = in.readObject();
+        price = in.readObject();
+        Long creatorId = in.readObject();
         if (creatorId != null) {
-            String filePath = objectDataInput.readObject();
+            String filePath = in.readObject();
             this.creator = User.builder()
                     .id(creatorId)
                     .fileName(filePath)
                     .build();
         }
-        address = objectDataInput.readObject();
-        category = objectDataInput.readObject();
+        address = in.readObject();
+        category = in.readObject();
+        String courseTypeName = in.readString();
+        this.courseType = courseTypeName != null ? CourseType.valueOf(courseTypeName) : CourseType.IN_PERSON;
+        Long parentCourseId = in.readObject();
+        if (parentCourseId != null) {
+            this.parentCourse = Course.builder().id(parentCourseId).build();
+        }
+        // fields added in V28 — read only if available (cache backward-compat)
+        try {
+            String levelName = in.readString();
+            this.courseLevel = levelName != null ? CourseLevel.valueOf(levelName) : CourseLevel.BEGINNER;
+            String statusName = in.readString();
+            this.status = statusName != null ? CourseStatus.valueOf(statusName) : CourseStatus.PUBLISHED;
+            this.language = in.readString();
+            this.prerequisites = in.readString();
+            this.learningOutcomes = in.readString();
+            this.certificate = in.readBoolean();
+            this.imageUrl = in.readString();
+        } catch (Exception ignored) {
+            this.courseLevel = CourseLevel.BEGINNER;
+            this.status = CourseStatus.PUBLISHED;
+            this.language = "pl";
+        }
     }
 }

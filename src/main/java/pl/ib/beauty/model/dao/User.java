@@ -20,7 +20,7 @@ import java.util.Set;
 @Audited
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users", indexes = @Index(name = "idx_email", columnList = "email", unique = true))
+@Table(schema = "beautypg", name = "users", indexes = @Index(name = "idx_email", columnList = "email", unique = true))
 public class User extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,16 +31,20 @@ public class User extends Auditable {
     @NotAudited
     private String password;
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_role", inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(schema = "beautypg", name = "user_role", inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roleList;
     @OneToMany(mappedBy = "creator")
     @NotAudited
     private List<Course> createdCourses;
     @ManyToMany
     @NotAudited
-    @JoinTable(name = "course_participants", joinColumns = @JoinColumn(name = "user_id"),
+    @EqualsAndHashCode.Exclude
+    @JoinTable(schema = "beautypg", name = "course_participants", joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "course_id"))
     private Set<Course> coursesParticipating = new HashSet<>();
     private String fileName;
     private String imagePath;
+    @NotAudited
+    @Column(name = "instructor_rating")
+    private Double instructorRating;
 }

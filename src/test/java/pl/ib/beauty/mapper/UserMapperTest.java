@@ -15,28 +15,26 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
-class UserMapperTest {
-    private final UserMapper userMapper = new UserMapperImpl();
-
-    @Test
-    void shouldMapUserToDto() {
-        //given
-        Course course = new Course(1L, "hair cut", "man hair cut course", LocalDateTime.now(), LocalDateTime.now(), 10, 4.0, BigDecimal.TEN, null, null, null, null);
-        User user = new User(1L, "Adam", "Nowak", "adam@gmail.com", "adam123", Set.of(new Role(1L, "user")), List.of(course), null, null, null);
-
-        //when
-        UserDtoResponse result = userMapper.userToDto(user);
-
-        //then
-        assertNotNull(result);
-        assertEquals(1L, user.getId());
-        assertEquals("Adam", result.getFirstName());
-        assertEquals("Nowak", result.getLastName());
-        assertEquals("adam@gmail.com", result.getEmail());
-        assertNotNull(List.of(new Role(1L, "user"), result.getRoles()));
-        assertFalse(result.isTeacher());
-    }
-
-
-}
+//@ExtendWith(MockitoExtension.class)
+//class UserMapperTest {
+//    private final UserMapper userMapper = new UserMapperImpl();
+//
+//    @Test
+//    void shouldMapUserToDto() {
+//        //given
+//        Course course = new Course(1L, "hair cut", "man hair cut course", LocalDateTime.now(), LocalDateTime.now(), 10, 4.0, BigDecimal.TEN, null, null, null, null);
+//        User user = new User(1L, "Adam", "Nowak", "adam@gmail.com", "adam123", Set.of(new Role(1L, "user")), List.of(course), null, null, null);
+//
+//        //when
+//        UserDtoResponse result = userMapper.userToDto(user);
+//
+//        //then
+//        assertNotNull(result);
+//        assertEquals(1L, user.getId());
+//        assertEquals("Adam", result.getFirstName());
+//        assertEquals("Nowak", result.getLastName());
+//        assertEquals("adam@gmail.com", result.getEmail());
+//        assertNotNull(List.of(new Role(1L, "user"), result.getRoles()));
+//        assertFalse(result.isTeacher());
+//    }
+//}

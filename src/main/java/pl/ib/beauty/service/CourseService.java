@@ -10,9 +10,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.jpa.domain.Specification;
+import pl.ib.beauty.model.CourseType;
+import pl.ib.beauty.model.dao.Address;
 import pl.ib.beauty.model.dao.Category;
 import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.User;
+import pl.ib.beauty.model.dto.RepublishCourseRequest;
 import pl.ib.beauty.repository.CategoryRepository;
 import pl.ib.beauty.repository.CourseRepository;
 
@@ -57,7 +63,9 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Course> getCoursesByCategoryAndTitle(Long categoryId, String title, Pageable pageable, boolean isCurrentCreator, boolean isCurrentStudent) {
+    public Page<Course> getCoursesByCategoryAndTitle(Long categoryId, String title, String city, CourseType courseType,
+                                                     Pageable pageable, boolean isCurrentCreator,
+                                                     boolean isCurrentStudent, boolean hidePast) {
         if (isCurrentCreator) {
             Long currentUserId = userService.currentLoginUser().getId();
             return courseRepository.findByCreatorId(currentUserId, pageable);
@@ -65,17 +73,40 @@ public class CourseService {
         if (isCurrentStudent) {
             Long currentUserId = userService.currentLoginUser().getId();
             return courseRepository.findByParticipantsId(currentUserId, pageable);
+        }
+        return courseRepository.findAll(buildPublicCourseSpec(categoryId, title, city, courseType, hidePast), pageable);
+    }
 
-        }
-        if (categoryId != null && title != null) {
-            return courseRepository.findByCategoryIdAndTitleContaining(categoryId, title, pageable);
-        } else if (categoryId != null) {
-            return courseRepository.findByCategoryId(categoryId, pageable);
-        } else if (title != null) {
-            return courseRepository.findByTitleContaining(title, pageable);
-        } else {
-            return courseRepository.findAll(pageable);
-        }
+    private Specification<Course> buildPublicCourseSpec(Long categoryId, String title, String city,
+                                                        CourseType courseType, boolean hidePast) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (categoryId != null) {
+                predicates.add(cb.equal(root.get("category").get("id"), categoryId));
+            }
+            if (title != null && !title.isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("title")), "%" + title.toLowerCase() + "%"));
+            }
+            if (city != null && !city.isBlank()) {
+                var addr = root.join("address", JoinType.LEFT);
+                predicates.add(cb.like(cb.lower(addr.get("city")), "%" + city.toLowerCase() + "%"));
+            }
+            if (courseType != null) {
+                predicates.add(cb.equal(root.get("courseType"), courseType));
+            }
+            if (hidePast) {
+                LocalDateTime now = LocalDateTime.now();
+                predicates.add(cb.or(
+                    cb.isNull(root.get("endDate")),
+                    cb.greaterThanOrEqualTo(root.get("endDate"), now)
+                ));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public List<String> getDistinctCities() {
+        return courseRepository.findDistinctCities();
     }
 
     @Transactional
@@ -86,14 +117,18 @@ public class CourseService {
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with label: " + label));
         course.setCategory(category);
         course.setCreator(userService.currentLoginUser());
-        String address = course.getAddress().getStreet() + ", " + course.getAddress().getStreetNumber() + ", " +
-                course.getAddress().getApartmentNumber() + ", " + course.getAddress().getCity() + ", " + course.getAddress().getPostalCode();
-        LatLng latLng = geoCodingService.getGeoCoding(address);
-        if (null != latLng) {
-            course.getAddress().setLat(latLng.lat);
-            course.getAddress().setLng(latLng.lng);
+        if (course.getCourseType() == null) {
+            course.setCourseType(CourseType.IN_PERSON);
         }
-
+        if (course.getAddress() != null) {
+            String address = course.getAddress().getStreet() + ", " + course.getAddress().getStreetNumber() + ", " +
+                    course.getAddress().getApartmentNumber() + ", " + course.getAddress().getCity() + ", " + course.getAddress().getPostalCode();
+            LatLng latLng = geoCodingService.getGeoCoding(address);
+            if (null != latLng) {
+                course.getAddress().setLat(latLng.lat);
+                course.getAddress().setLng(latLng.lng);
+            }
+        }
         return courseRepository.save(course);
     }
 
@@ -107,6 +142,7 @@ public class CourseService {
         existingCourse.setStartDate(course.getStartDate());
         existingCourse.setEndDate(course.getEndDate());
         existingCourse.setMaxParticipants(course.getMaxParticipants());
+        existingCourse.setCourseType(course.getCourseType() != null ? course.getCourseType() : CourseType.IN_PERSON);
         existingCourse.setAddress(course.getAddress());
 
         Long categoryId = course.getCategory().getId();
@@ -153,5 +189,42 @@ public class CourseService {
     @Transactional
     public Course saveCourse(Course course) {
         return courseRepository.save(course);
+    }
+
+    @Transactional
+    public Course republishCourse(Long originalId, RepublishCourseRequest request) {
+        Course original = courseRepository.findById(originalId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + originalId));
+
+        Address newAddress = null;
+        if (original.getAddress() != null) {
+            Address src = original.getAddress();
+            newAddress = Address.builder()
+                    .district(src.getDistrict())
+                    .street(src.getStreet())
+                    .streetNumber(src.getStreetNumber())
+                    .apartmentNumber(src.getApartmentNumber())
+                    .city(src.getCity())
+                    .postalCode(src.getPostalCode())
+                    .lat(src.getLat())
+                    .lng(src.getLng())
+                    .build();
+        }
+
+        Course republished = Course.builder()
+                .title(original.getTitle())
+                .description(original.getDescription())
+                .price(original.getPrice())
+                .maxParticipants(original.getMaxParticipants())
+                .courseType(original.getCourseType())
+                .category(original.getCategory())
+                .creator(original.getCreator())
+                .address(newAddress)
+                .startDate(request.newStartDate())
+                .endDate(request.newEndDate())
+                .parentCourse(original)
+                .build();
+
+        return courseRepository.save(republished);
     }
 }

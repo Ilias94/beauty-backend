@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2Login(httpSecurityOAuth2LoginConfigurer ->
                         httpSecurityOAuth2LoginConfigurer.authorizationEndpoint(authorizationEndpointConfig ->
-                                        authorizationEndpointConfig.baseUri("/api/oauth2/authorization/"))
+                                        authorizationEndpointConfig.baseUri("/api/oauth2/authorization"))
                                 .successHandler(oauth2LoginSuccessHandler))
                 .build();
     }

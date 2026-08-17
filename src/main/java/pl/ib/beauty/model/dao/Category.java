@@ -10,6 +10,7 @@ import java.io.IOException;
 
 @Entity
 @Data
+@Table(schema = "beautypg")
 public class Category implements IdentifiedDataSerializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

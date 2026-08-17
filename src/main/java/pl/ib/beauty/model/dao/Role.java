@@ -1,9 +1,6 @@
 package pl.ib.beauty.model.dao;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.envers.Audited;
 
@@ -15,6 +12,7 @@ import org.hibernate.envers.Audited;
 @Getter
 @Setter
 @EqualsAndHashCode
+@Table(schema = "beautypg")
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

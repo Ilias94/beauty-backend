@@ -21,4 +21,6 @@ public class UserDtoResponse extends AuditableDto {
     private boolean isTeacher;
     private String fileName;
     private List<Long> ownedCourseIds;
+    private List<Long> enrolledCourseIds;
+    private Double instructorRating;
 }

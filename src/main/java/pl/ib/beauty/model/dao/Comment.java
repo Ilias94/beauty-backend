@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
+@Table(schema = "beautypg")
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

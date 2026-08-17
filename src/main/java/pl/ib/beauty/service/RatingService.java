@@ -18,7 +18,7 @@ public class RatingService {
     private final CourseService courseService;
     private final UserService userService;
 
-    public Rating saveRating(Long courseId, float value) {
+    public Rating saveRating(Long courseId, float value, Float instructorRating) {
         Course courseById = courseService.getCourseById(courseId);
         User currentLoginUser = userService.currentLoginUser();
 
@@ -29,8 +29,17 @@ public class RatingService {
                         .build());
 
         rating.setValue(value);
+        rating.setInstructorRating(instructorRating);
 
-        return ratingRepository.save(rating);
+        Rating saved = ratingRepository.save(rating);
+
+        if (instructorRating != null && courseById.getCreator() != null) {
+            Long instructorId = courseById.getCreator().getId();
+            ratingRepository.findAverageInstructorRating(instructorId)
+                    .ifPresent(avg -> userService.updateInstructorRating(instructorId, avg));
+        }
+
+        return saved;
     }
 
     public Rating getCurrentUserRatingByCourseId(Long courseId) {

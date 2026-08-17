@@ -20,7 +20,7 @@ public class RatingController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("isAuthenticated()")
     public RatingDto saveRating(@RequestBody RatingDto ratingDto) {
-        return ratingMapper.ratingToRatingDto(ratingService.saveRating(ratingDto.getCourseId(), ratingDto.getValue()));
+        return ratingMapper.ratingToRatingDto(ratingService.saveRating(ratingDto.courseId(), ratingDto.value(), ratingDto.instructorRating()));
     }
 
     @GetMapping("/{courseId}")

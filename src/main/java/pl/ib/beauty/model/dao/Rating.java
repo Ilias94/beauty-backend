@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
+@Table(schema = "beautypg")
 public class Rating {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,4 +31,6 @@ public class Rating {
     private User author;
     @ManyToOne
     private Course course;
+    @Column(name = "instructor_rating")
+    private Float instructorRating;
 }

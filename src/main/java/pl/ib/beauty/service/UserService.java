@@ -2,14 +2,13 @@ package pl.ib.beauty.service;
 
 import groovy.util.logging.Slf4j;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import pl.ib.beauty.exception.InvalidPasswordException;
 import pl.ib.beauty.model.dao.User;
@@ -38,8 +37,11 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
 
-        if (file != null) {
-            String fileName = "user" + user.getId() + ".jpg";
+        if (file != null && file.getOriginalFilename() != null) {
+            String ext = file.getOriginalFilename().contains(".")
+                    ? file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'))
+                    : ".jpg";
+            String fileName = "user" + user.getId() + ext;
             fileService.saveFile(fileName, file.getBytes());
             user.setFileName(fileName);
         }
@@ -96,16 +98,24 @@ public class UserService {
     public void changePassword(ChangePasswordDtoRequest passwordRequest) {
         User currentLoginUser = currentLoginUser();
 
-        if (!passwordEncoder.matches(passwordRequest.getOldPassword(), currentLoginUser.getPassword())) {
+        if (!passwordEncoder.matches(passwordRequest.oldPassword(), currentLoginUser.getPassword())) {
             throw new InvalidPasswordException("Old password is incorrect");
         }
 
-        if (!passwordRequest.getNewPassword().equals(passwordRequest.getConfirmNewPassword())) {
+        if (!passwordRequest.newPassword().equals(passwordRequest.confirmNewPassword())) {
             throw new InvalidPasswordException("New password and confirmation do not match");
         }
 
-        currentLoginUser.setPassword(passwordEncoder.encode(passwordRequest.getNewPassword()));
+        currentLoginUser.setPassword(passwordEncoder.encode(passwordRequest.newPassword()));
         userRepository.save(currentLoginUser);
+    }
+
+    @Transactional
+    public void updateInstructorRating(Long instructorId, Double rating) {
+        userRepository.findById(instructorId).ifPresent(user -> {
+            user.setInstructorRating(rating);
+            userRepository.save(user);
+        });
     }
 
     private Map<String, Object> prepareTemplateVariables(User user) {

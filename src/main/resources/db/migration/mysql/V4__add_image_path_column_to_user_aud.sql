@@ -1,1 +1,0 @@
-ALTER TABLE users_aud add column image_path VARCHAR(255);

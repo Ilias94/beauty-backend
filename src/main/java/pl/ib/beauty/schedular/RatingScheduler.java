@@ -7,7 +7,6 @@ import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.Rating;
 import pl.ib.beauty.repository.CourseRepository;
 import pl.ib.beauty.repository.RatingRepository;
-import pl.ib.beauty.service.CourseService;
 
 import java.util.List;
 

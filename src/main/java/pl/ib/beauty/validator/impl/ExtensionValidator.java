@@ -17,8 +17,9 @@ public class ExtensionValidator implements ConstraintValidator<ExtensionValid, M
 
     @Override
     public boolean isValid(MultipartFile multipartFile, ConstraintValidatorContext constraintValidatorContext) {
+        if (multipartFile == null) {
+            return true;
+        }
         return extensions.contains(FilenameUtils.getExtension(multipartFile.getOriginalFilename()));
     }
-
-
 }

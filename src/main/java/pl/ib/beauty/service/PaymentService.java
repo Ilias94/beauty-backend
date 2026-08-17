@@ -3,8 +3,12 @@ package pl.ib.beauty.service;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import pl.ib.beauty.model.Status;
+
+import java.time.LocalDateTime;
 import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.Payment;
 import pl.ib.beauty.model.dao.User;
@@ -30,9 +34,21 @@ public class PaymentService {
         User user = userService.currentLoginUser();
         Course courseById = courseService.getCourseById(courseId);
 
+        if (courseById.getEndDate() != null && courseById.getEndDate().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot enroll in a past course");
+        }
+
+        if (courseById.getParticipants() != null &&
+                courseById.getParticipants().size() >= courseById.getMaxParticipants()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Course is full");
+        }
+
+        if (courseById.getParticipants() != null && courseById.getParticipants().contains(user)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Already enrolled in this course");
+        }
 
         Payment payment = Payment.builder()
-                .orderId(orderId.toString())
+                .orderId(orderId)
                 .user(user)
                 .course(courseById)
                 .status(Status.IN_PROGRESS)
@@ -50,7 +66,7 @@ public class PaymentService {
     }
 
     public Optional<Payment> updateStatus(UUID orderId, Status status) {
-        return paymentRepository.findByOrderId(orderId.toString())
+        return paymentRepository.findByOrderId(orderId)
                 .map(payment -> {
                     payment.setStatus(status);
                     paymentRepository.save(payment);

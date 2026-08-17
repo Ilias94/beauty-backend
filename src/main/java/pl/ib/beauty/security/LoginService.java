@@ -24,12 +24,12 @@ public class LoginService {
     private final TokenService tokenService;
 
     public TokenDto login(LoginDto loginDto) {
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password());
         Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
         String roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
-        JwtClaimsSet jwtClaimsSet = tokenService.getJwtClaimsSet(loginDto.getEmail(), roles);
+        JwtClaimsSet jwtClaimsSet = tokenService.getJwtClaimsSet(loginDto.email(), roles);
         String token = jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).getTokenValue();
         return new TokenDto(token);
     }

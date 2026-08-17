@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Entity
 @Data
-@Table(indexes = @Index(name = "idx_template_name", columnList = "name", unique = true))
+@Table(schema = "beautypg",indexes = @Index(name = "idx_template_name", columnList = "name", unique = true))
 public class Template {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

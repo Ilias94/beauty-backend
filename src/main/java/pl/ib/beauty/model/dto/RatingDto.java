@@ -1,19 +1,7 @@
 package pl.ib.beauty.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RatingDto {
-    private float value;
-    private Long courseId;
+public record RatingDto(float value, Long courseId, Float instructorRating) {
 }

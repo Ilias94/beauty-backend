@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beauty
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: beauty
+  template:
+    metadata:
+      labels:
+        app: beauty
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:18-alpine
+          command:
+            - sh
+            - -c
+            - until pg_isready -h postgres-service -p 5432; do echo waiting for postgres; sleep 2; done
+      containers:
+        - name: beauty
+          image: docker-app/beauty:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: db-url
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: db-username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: db-password
+            - name: MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: mail-username
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: mail-password
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: google-client-id
+            - name: GOOGLE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: google-secret
+            - name: JWT_PRIVATE_KEY
+              value: "file:/app/keys/pkcs8.key"
+            - name: JWT_PUBLIC_KEY
+              value: "file:/app/keys/public-key.pem"
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: aws-access-key
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: aws-secret-key
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: anthropic-api-key
+            - name: GOOGLE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: google-access-key
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: stripe-secret-key
+          volumeMounts:
+            - name: jwt-keys
+              mountPath: /app/keys
+              readOnly: true
+      volumes:
+        - name: jwt-keys
+          secret:
+            secretName: jwt-keys-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: beauty-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: beauty
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+

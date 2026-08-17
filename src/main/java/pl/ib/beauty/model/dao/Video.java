@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(schema = "beautypg")
 public class Video {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

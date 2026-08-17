@@ -3,10 +3,7 @@ package pl.ib.beauty.model.dao;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +16,7 @@ import java.io.IOException;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(schema = "beautypg")
 public class Address implements IdentifiedDataSerializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,2 +1,0 @@
-ALTER TABLE video
-MODIFY COLUMN description VARCHAR(255) NULL;

@@ -14,6 +14,8 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = {AddressMapper.class})
 public interface CourseMapper {
     @Mapping(source = "creator", target = "creator", qualifiedByName = "creator")
+    @Mapping(target = "participantCount", expression = "java(course.getParticipants() != null ? course.getParticipants().size() : 0)")
+    @Mapping(source = "parentCourse.id", target = "parentCourseId")
     CourseDtoResponse courseToDto(Course course);
 
     List<CourseDtoResponse> toDtoList(List<Course> courses);
@@ -25,7 +27,10 @@ public interface CourseMapper {
         if (user == null) return null;
         return UserDtoResponse.builder()
                 .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
                 .fileName(user.getFileName())
+                .instructorRating(user.getInstructorRating())
                 .build();
     }
 }

@@ -1,6 +1,7 @@
 package pl.ib.beauty.model.dao;
 
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+@Table(schema = "beautypg")
 public abstract class Auditable {
     @CreatedDate
     private LocalDate createDate;

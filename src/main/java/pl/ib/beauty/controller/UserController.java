@@ -36,7 +36,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(Create.class)
     @Valid
-    public UserDtoResponse saveUser(@RequestPart @Valid UserDtoRequest user, @Valid @ExtensionValid(groups = Create.class, supportedExtensions = "mp4")  @RequestPart(required = false) MultipartFile file) {
+    public UserDtoResponse saveUser(@RequestPart @Valid UserDtoRequest user, @Valid @ExtensionValid(groups = Create.class, supportedExtensions = {"png", "avif", "jpg", "jpeg", "webp"}) @RequestPart(required = false) MultipartFile file) {
         return userMapper.userToDto(userService.save(userMapper.userDtoToUser(user), user.isTeacher(), file));
     }
 

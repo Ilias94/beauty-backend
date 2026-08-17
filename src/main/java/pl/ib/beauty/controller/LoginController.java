@@ -1,5 +1,7 @@
 package pl.ib.beauty.controller;
 
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -17,6 +19,8 @@ import pl.ib.beauty.security.LoginService;
 public class LoginController {
     private final LoginService loginService;
 
+    @Timed(value = "login.processing.time")
+    @Counted(value = "login.requests.count")
     @PostMapping
     TokenDto login(@RequestBody @Valid LoginDto loginDto) {
         return loginService.login(loginDto);

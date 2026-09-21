@@ -13,9 +13,9 @@ pipeline {
         DOCKER_IMAGE = "docker-app/beauty"
         K8S_DEPLOYMENT = "beauty"
         K8S_CONTAINER = "beauty"
-        // Jenkins "Username with password" credential (GitHub user + personal access
-        // token with repo scope). Only used by the Release stage to push commits and the tag.
-        GIT_CREDENTIALS_ID = "github-credentials"
+        // The credential the job already uses to check out from GitHub (Ilias94 + token).
+        // The Release stage also pushes commits and the tag with it, so it needs write access.
+        GIT_CREDENTIALS_ID = "5fec19ce-b42c-4aa8-9b1f-eac8eadbeca6"
         // Release builds tag the image with the released version, regular builds with the build number.
         IMAGE_TAG = "${params.RELEASE ? params.RELEASE_VERSION : env.BUILD_NUMBER}"
     }

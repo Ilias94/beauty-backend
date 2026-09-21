@@ -33,7 +33,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn -B clean compile'
+                bat 'mvn -B clean compile'
             }
         }
 
@@ -41,7 +41,7 @@ pipeline {
             // Tests rely on TestContainers spinning up real PostgreSQL,
             // so the Jenkins agent needs Docker available.
             steps {
-                sh 'mvn -B test'
+                bat 'mvn -B test'
             }
             post {
                 always {
@@ -55,7 +55,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-                sh 'mvn -B package -DskipTests'
+                bat 'mvn -B package -DskipTests'
             }
             post {
                 success {
@@ -71,7 +71,7 @@ pipeline {
             steps {
                 // Built directly against the Docker Desktop daemon; the image
                 // stays local, no push step is needed.
-                sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} -t ${DOCKER_IMAGE}:v1 ."
+                bat "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} -t ${DOCKER_IMAGE}:v1 ."
             }
         }
 
@@ -80,13 +80,11 @@ pipeline {
                 branch 'main'
             }
             steps {
-                sh """
-                    kubectl config use-context docker-desktop
-                    kubectl set image deployment/${K8S_DEPLOYMENT} \
-                        ${K8S_CONTAINER}=${DOCKER_IMAGE}:${env.BUILD_NUMBER} \
-                        --record
-                    kubectl rollout status deployment/${K8S_DEPLOYMENT} --timeout=120s
-                """
+                // One command per bat step: a multi-line bat script only reports
+                // the exit code of its last command, so earlier failures would be hidden.
+                bat 'kubectl config use-context docker-desktop'
+                bat "kubectl set image deployment/${K8S_DEPLOYMENT} ${K8S_CONTAINER}=${DOCKER_IMAGE}:${env.BUILD_NUMBER} --record"
+                bat "kubectl rollout status deployment/${K8S_DEPLOYMENT} --timeout=120s"
             }
         }
     }

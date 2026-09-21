@@ -13,6 +13,12 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>beauty</name>
 	<description>Spring boot project for Engineering Thesis</description>
+	<scm>
+		<connection>scm:git:https://github.com/Ilias94/beauty-backend.git</connection>
+		<developerConnection>scm:git:https://github.com/Ilias94/beauty-backend.git</developerConnection>
+		<url>https://github.com/Ilias94/beauty-backend</url>
+		<tag>HEAD</tag>
+	</scm>
 	<properties>
 		<java.version>21</java.version>
 		<mapstruct.version>1.5.5.Final</mapstruct.version>
@@ -259,6 +265,16 @@
 							<version>0.2.0</version>
 						</path>
 					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>3.3.1</version>
+				<configuration>
+					<tagNameFormat>v@{project.version}</tagNameFormat>
+					<!-- No distributionManagement yet, so build the tagged release instead of the default "deploy". -->
+					<goals>package</goals>
 				</configuration>
 			</plugin>
 		</plugins>

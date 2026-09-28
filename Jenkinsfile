@@ -13,6 +13,9 @@ pipeline {
         DOCKER_IMAGE = "docker-app/beauty"
         K8S_DEPLOYMENT = "beauty"
         K8S_CONTAINER = "beauty"
+        // The Jenkins service runs as LocalSystem, whose profile has no kubeconfig;
+        // Docker Desktop writes the docker-desktop context to the user's profile only.
+        KUBECONFIG = "C:\\Users\\ilbel\\.kube\\config"
         // The credential the job already uses to check out from GitHub (Ilias94 + token).
         // The Release stage also pushes commits and the tag with it, so it needs write access.
         GIT_CREDENTIALS_ID = "5fec19ce-b42c-4aa8-9b1f-eac8eadbeca6"

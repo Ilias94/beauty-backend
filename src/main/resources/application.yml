@@ -72,6 +72,11 @@ google:
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
 
+embedding:
+  # paraphrase-multilingual-MiniLM-L12-v2 pinned to a commit; set EMBEDDING_MODEL_URI=classpath:model.onnx
+  # to use a local copy in src/main/resources instead (e.g. offline).
+  modelUri: ${EMBEDDING_MODEL_URI:https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2/resolve/e8f8c211226b894fcb81acc59f3b34ba3efd5f42/onnx/model.onnx}
+
 hazelcast:
   network:
     rest-api:

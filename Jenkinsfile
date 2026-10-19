@@ -140,11 +140,9 @@ pipeline {
             }
             steps {
                 bat 'mvn -B package -DskipTests'
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-                }
+                // A step rather than post { success }: that condition looks at the whole
+                // build, so an UNSTABLE Secret Scan would silently skip archiving the jar.
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
 

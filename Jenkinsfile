@@ -182,7 +182,7 @@ pipeline {
                 // From here on a failure means the new version is (partly) live, so post
                 // rolls it back. Before this point the cluster is untouched.
                 script { env.DEPLOY_STARTED = 'true' }
-                bat "kubectl rollout status deployment/${K8S_DEPLOYMENT} --timeout=600s"
+                bat "kubectl rollout status deployment/${K8S_DEPLOYMENT} --timeout=900s"
                 // Smoke test from inside the cluster, through the Service, so it checks the
                 // same path real traffic takes. Readiness only turns UP after startup
                 // (Flyway, DB connection) has finished.
@@ -194,7 +194,7 @@ pipeline {
                         if (env.DEPLOY_STARTED == 'true') {
                             echo "Deploy or smoke test failed, rolling back deployment/${K8S_DEPLOYMENT}"
                             bat "kubectl rollout undo deployment/${K8S_DEPLOYMENT}"
-                            bat "kubectl rollout status deployment/${K8S_DEPLOYMENT} --timeout=600s"
+                            bat "kubectl rollout status deployment/${K8S_DEPLOYMENT} --timeout=900s"
                         }
                     }
                 }

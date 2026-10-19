@@ -45,6 +45,10 @@ spring:
             client-secret: ${GOOGLE_SECRET}
 
   ai:
+    model:
+      # EmbeddingModelConfig defines the embedding model; without this the transformers
+      # starter also downloads and loads its default all-MiniLM-L6-v2 at startup.
+      embedding: none
     anthropic:
       api-key: ${ANTHROPIC_API_KEY}
       chat:

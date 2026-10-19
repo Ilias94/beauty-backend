@@ -43,8 +43,8 @@ spring:
           model: claude-sonnet-4-6
 
 jwt:
-  publicKey: classpath:public-key.pem
-  privateKey: classpath:pkcs8.key
+  publicKey: classpath:jwt/test-public-key.pem
+  privateKey: classpath:jwt/test-pkcs8.key
 
 aws:
   accessKey: ${AWS_ACCESS_KEY:}

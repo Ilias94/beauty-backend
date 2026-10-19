@@ -3,9 +3,11 @@
 useDefault = true
 
 [allowlist]
-description = "Not part of the source tree"
+description = "Not part of the source tree, or not a real secret"
 paths = [
   '''(^|/)\.git/''',
   '''(^|/)target/''',
   '''(^|/)gitleaks-report\.json$''',
+  # Throwaway key pair used only by the test profile.
+  '''(^|/)src/test/resources/jwt/''',
 ]

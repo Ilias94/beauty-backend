@@ -20,7 +20,7 @@ pipeline {
         KUBECONFIG = "C:\\Users\\ilbel\\.kube\\config"
         // The credential the job already uses to check out from GitHub (Ilias94 + token).
         // The Release stage also pushes commits and the tag with it, so it needs write access.
-        GIT_CREDENTIALS_ID = "5fec19ce-b42c-4aa8-9b1f-eac8eadbeca6"
+        GIT_CREDENTIALS_ID = "5fec19ce-b42c-4aa8-9b1f-eac8eadbeca6" // gitleaks:allow (an ID, not the token)
         // Release builds tag the image with the released version, regular builds with the build number.
         IMAGE_TAG = "${params.RELEASE ? params.RELEASE_VERSION : env.BUILD_NUMBER}"
     }
@@ -56,14 +56,10 @@ pipeline {
 
         stage('Secret Scan') {
             // Scans the checked-out tree (not git history) with gitleaks, before anything
-            // is built or deployed. The repo still tracks real secrets (k8s/*-secret.yaml,
-            // JWT keys in src/main/resources), so for now a finding marks the build
-            // UNSTABLE instead of failing it. Once they are out of the repo, drop the
-            // catchError so leaked secrets stop the pipeline.
+            // is built or deployed. A finding fails the build; false positives go in
+            // .gitleaks.toml or get an inline gitleaks:allow comment.
             steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    bat 'docker run --rm -v "%WORKSPACE%:/repo" zricethezav/gitleaks:v8.21.2 dir /repo --config /repo/.gitleaks.toml --redact --no-banner --report-format json --report-path /repo/gitleaks-report.json'
-                }
+                bat 'docker run --rm -v "%WORKSPACE%:/repo" zricethezav/gitleaks:v8.21.2 dir /repo --config /repo/.gitleaks.toml --redact --no-banner --report-format json --report-path /repo/gitleaks-report.json'
             }
             post {
                 always {

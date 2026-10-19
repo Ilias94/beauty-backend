@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Secrets and large local files ###
+api-key/
+k8s/jwt-keys-secret.yaml
+src/main/resources/*.key
+src/main/resources/*.pem
+src/main/resources/model.onnx
+gitleaks-report.json

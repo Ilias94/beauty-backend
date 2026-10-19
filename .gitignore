@@ -39,3 +39,6 @@ src/main/resources/*.key
 src/main/resources/*.pem
 src/main/resources/model.onnx
 gitleaks-report.json
+
+# Local test login, see local-test-user.txt
+local-test-user.txt

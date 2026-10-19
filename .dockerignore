@@ -1,0 +1,4 @@
+# The image only needs the packaged jar; keep everything else
+# (sources, .git, the 470 MB model.onnx, keys) out of the build context.
+*
+!target/*.jar

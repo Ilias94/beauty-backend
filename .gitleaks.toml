@@ -1,0 +1,11 @@
+# Used by the Secret Scan stage in the Jenkinsfile.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Not part of the source tree"
+paths = [
+  '''(^|/)\.git/''',
+  '''(^|/)target/''',
+  '''(^|/)gitleaks-report\.json$''',
+]

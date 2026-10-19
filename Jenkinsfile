@@ -13,6 +13,7 @@ pipeline {
         DOCKER_IMAGE = "docker-app/beauty"
         K8S_DEPLOYMENT = "beauty"
         K8S_CONTAINER = "beauty"
+        K8S_SERVICE = "beauty-service"
         // The Jenkins service runs as LocalSystem, whose profile has no kubeconfig;
         // Docker Desktop writes the docker-desktop context to the user's profile only.
         KUBECONFIG = "C:\\Users\\ilbel\\.kube\\config"
@@ -49,6 +50,24 @@ pipeline {
                 // This Jenkinsfile lives at the root of the beauty-backend repo,
                 // so checkout scm puts pom.xml directly in the workspace root.
                 checkout scm
+            }
+        }
+
+        stage('Secret Scan') {
+            // Scans the checked-out tree (not git history) with gitleaks, before anything
+            // is built or deployed. The repo still tracks real secrets (k8s/*-secret.yaml,
+            // JWT keys in src/main/resources), so for now a finding marks the build
+            // UNSTABLE instead of failing it. Once they are out of the repo, drop the
+            // catchError so leaked secrets stop the pipeline.
+            steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    bat 'docker run --rm -v "%WORKSPACE%:/repo" zricethezav/gitleaks:v8.21.2 dir /repo --config /repo/.gitleaks.toml --redact --no-banner --report-format json --report-path /repo/gitleaks-report.json'
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'gitleaks-report.json', allowEmptyArchive: true
+                }
             }
         }
 
@@ -115,7 +134,7 @@ pipeline {
         stage('Package') {
             when {
                 anyOf {
-                    branch 'main'
+                    branch 'master'
                     expression { params.RELEASE }
                 }
             }
@@ -132,7 +151,7 @@ pipeline {
         stage('Docker Build') {
             when {
                 anyOf {
-                    branch 'main'
+                    branch 'master'
                     expression { params.RELEASE }
                 }
             }
@@ -146,7 +165,7 @@ pipeline {
         stage('Deploy to Docker Desktop k8s') {
             when {
                 anyOf {
-                    branch 'main'
+                    branch 'master'
                     expression { params.RELEASE }
                 }
             }
@@ -155,7 +174,25 @@ pipeline {
                 // the exit code of its last command, so earlier failures would be hidden.
                 bat 'kubectl config use-context docker-desktop'
                 bat "kubectl set image deployment/${K8S_DEPLOYMENT} ${K8S_CONTAINER}=${DOCKER_IMAGE}:${IMAGE_TAG} --record"
+                // From here on a failure means the new version is (partly) live, so post
+                // rolls it back. Before this point the cluster is untouched.
+                script { env.DEPLOY_STARTED = 'true' }
                 bat "kubectl rollout status deployment/${K8S_DEPLOYMENT} --timeout=120s"
+                // Smoke test from inside the cluster, through the Service, so it checks the
+                // same path real traffic takes. Readiness only turns UP after startup
+                // (Flyway, DB connection) has finished.
+                bat "kubectl run smoke-test-${env.BUILD_NUMBER} --rm -i --restart=Never --image=curlimages/curl:8.10.1 --command -- curl -fsS --retry 10 --retry-delay 3 --retry-all-errors http://${K8S_SERVICE}:8080/actuator/health/readiness"
+            }
+            post {
+                failure {
+                    script {
+                        if (env.DEPLOY_STARTED == 'true') {
+                            echo "Deploy or smoke test failed, rolling back deployment/${K8S_DEPLOYMENT}"
+                            bat "kubectl rollout undo deployment/${K8S_DEPLOYMENT}"
+                            bat "kubectl rollout status deployment/${K8S_DEPLOYMENT} --timeout=120s"
+                        }
+                    }
+                }
             }
         }
     }

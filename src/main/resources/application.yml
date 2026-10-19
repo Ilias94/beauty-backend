@@ -76,6 +76,12 @@ google:
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
 
+assistant:
+  # Turns the /api/v1/assistant chat off without a redeploy of the frontend.
+  enabled: ${ASSISTANT_ENABLED:true}
+  # Questions per user per day; each one is 1-3 Claude calls depending on the tools used.
+  dailyLimit: ${ASSISTANT_DAILY_LIMIT:30}
+
 embedding:
   # paraphrase-multilingual-MiniLM-L12-v2 pinned to a commit; set EMBEDDING_MODEL_URI=classpath:model.onnx
   # to use a local copy in src/main/resources instead (e.g. offline).

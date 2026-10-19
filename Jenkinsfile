@@ -14,6 +14,7 @@ pipeline {
         K8S_DEPLOYMENT = "beauty"
         K8S_CONTAINER = "beauty"
         K8S_SERVICE = "beauty-service"
+        KIND_NODE = "desktop-control-plane"
         // The Jenkins service runs as LocalSystem, whose profile has no kubeconfig;
         // Docker Desktop writes the docker-desktop context to the user's profile only.
         KUBECONFIG = "C:\\Users\\ilbel\\.kube\\config"
@@ -157,6 +158,12 @@ pipeline {
                 // Built directly against the Docker Desktop daemon; the image
                 // stays local, no push step is needed.
                 bat "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} -t ${DOCKER_IMAGE}:v1 ."
+                // Docker Desktop runs Kubernetes as a kind cluster, whose node has its own
+                // containerd image store: without this, pods fail with ErrImageNeverPull.
+                bat "docker save -o kind-image.tar ${DOCKER_IMAGE}:${IMAGE_TAG} ${DOCKER_IMAGE}:v1"
+                bat "docker cp kind-image.tar ${KIND_NODE}:/kind-image.tar"
+                bat "docker exec ${KIND_NODE} ctr -n k8s.io images import /kind-image.tar"
+                bat "docker exec ${KIND_NODE} rm -f /kind-image.tar"
             }
         }
 

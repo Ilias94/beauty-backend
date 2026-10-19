@@ -4,6 +4,8 @@ metadata:
   name: beauty
 spec:
   replicas: 2
+  # Startup takes ~2 min per pod and pods are replaced one at a time.
+  progressDeadlineSeconds: 900
   selector:
     matchLabels:
       app: beauty
@@ -25,15 +27,18 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
+            # Hazelcast cluster port; HazelcastConfig discovers app=beauty pods on it.
+            - containerPort: 5701
+              name: hazelcast
           # Startup (Flyway, the ONNX embedding model, Hazelcast) can take minutes;
-          # the startup probe gives it up to 5 min before readiness takes over.
+          # the startup probe gives it up to 10 min before readiness takes over.
           # Only ready pods get traffic and count towards kubectl rollout status.
           startupProbe:
             httpGet:
               path: /actuator/health/readiness
               port: 8080
             periodSeconds: 10
-            failureThreshold: 30
+            failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness

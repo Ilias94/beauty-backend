@@ -116,6 +116,9 @@ public class Course implements IdentifiedDataSerializable {
         out.writeString(learningOutcomes);
         out.writeBoolean(certificate);
         out.writeString(imageUrl);
+        // creator's name, so cached courses still show who teaches them
+        out.writeString(creator.getFirstName());
+        out.writeString(creator.getLastName());
     }
 
     @Override
@@ -159,6 +162,18 @@ public class Course implements IdentifiedDataSerializable {
             this.courseLevel = CourseLevel.BEGINNER;
             this.status = CourseStatus.PUBLISHED;
             this.language = "pl";
+            return;
+        }
+        // creator's name — entries cached before it was added simply don't have it
+        try {
+            String firstName = in.readString();
+            String lastName = in.readString();
+            if (this.creator != null) {
+                this.creator.setFirstName(firstName);
+                this.creator.setLastName(lastName);
+            }
+        } catch (Exception ignored) {
+            // older cache entry
         }
     }
 }

@@ -8,5 +8,7 @@ public record MessageDtoResponse(
         Long recipientId,
         String content,
         LocalDateTime sentAt,
-        boolean read
+        boolean read,
+        Long courseId,
+        String courseTitle
 ) {}

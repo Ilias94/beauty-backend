@@ -25,6 +25,11 @@ public class Message {
     @JoinColumn(name = "recipient_id", nullable = false)
     private User recipient;
 
+    /** The course the message is about, when it was sent from a course page; may be null. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    private Course course;
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 

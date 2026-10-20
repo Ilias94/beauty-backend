@@ -82,6 +82,10 @@ assistant:
   # Questions per user per day; each one is 1-3 Claude calls depending on the tools used.
   dailyLimit: ${ASSISTANT_DAILY_LIMIT:30}
 
+messaging:
+  # New private conversations one user can start per day; replies in existing ones are not counted.
+  newConversationsPerDay: ${MESSAGING_NEW_CONVERSATIONS_PER_DAY:10}
+
 embedding:
   # paraphrase-multilingual-MiniLM-L12-v2 pinned to a commit; set EMBEDDING_MODEL_URI=classpath:model.onnx
   # to use a local copy in src/main/resources instead (e.g. offline).

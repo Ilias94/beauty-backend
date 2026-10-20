@@ -35,6 +35,13 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             """)
     Optional<Message> findLastMessage(@Param("a") Long userId1, @Param("b") Long userId2);
 
+    @Query("""
+            SELECT COUNT(m) > 0 FROM Message m
+            WHERE (m.sender.id = :a AND m.recipient.id = :b)
+               OR (m.sender.id = :b AND m.recipient.id = :a)
+            """)
+    boolean existsConversation(@Param("a") Long userId1, @Param("b") Long userId2);
+
     long countBySenderIdAndRecipientIdAndReadFalse(Long senderId, Long recipientId);
 
     @Modifying

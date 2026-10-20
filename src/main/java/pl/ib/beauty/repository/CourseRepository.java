@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import pl.ib.beauty.model.CourseStatus;
 import pl.ib.beauty.model.dao.Course;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,19 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
     Page<Course> findByCategoryId(Long categoryId, Pageable pageable);
 
     Page<Course> findByCreatorId(Long creatorId, Pageable pageable);
+
+    boolean existsByCreatorIdAndStatus(Long creatorId, CourseStatus status);
+
+    @Query("SELECT COUNT(c) > 0 FROM Course c JOIN c.participants p WHERE c.creator.id = :teacherId AND p.id = :participantId")
+    boolean teachesParticipant(@Param("teacherId") Long teacherId, @Param("participantId") Long participantId);
+
+    /** Courses the user is booked on, with their instructors. */
+    @Query("SELECT DISTINCT c FROM Course c JOIN FETCH c.creator JOIN c.participants p WHERE p.id = :userId")
+    List<Course> findBookedWithCreator(@Param("userId") Long userId);
+
+    /** Courses the user teaches, with their participants. */
+    @Query("SELECT DISTINCT c FROM Course c LEFT JOIN FETCH c.participants WHERE c.creator.id = :userId")
+    List<Course> findTaughtWithParticipants(@Param("userId") Long userId);
 
     Page<Course> findByParticipantsId(Long participantId, Pageable pageable);
 

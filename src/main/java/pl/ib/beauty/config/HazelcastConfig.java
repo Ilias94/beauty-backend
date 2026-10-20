@@ -22,6 +22,7 @@ public class HazelcastConfig {
         mapConfig.setEvictionConfig(evictionConfig);
         // Daily per-user counters; keys carry the date, so a day is enough to expire them.
         config.addMapConfig(new MapConfig(AssistantConfig.USAGE_MAP).setTimeToLiveSeconds(24 * 3600));
+        config.addMapConfig(new MapConfig(MessagingConfig.NEW_CONVERSATIONS_MAP).setTimeToLiveSeconds(24 * 3600));
         config.getSerializationConfig().addDataSerializableFactory(1, new MyDataSerializableFactory());
         if (System.getenv("KUBERNETES_SERVICE_HOST") != null) {
             configureKubernetesDiscovery(config.getNetworkConfig().getJoin());

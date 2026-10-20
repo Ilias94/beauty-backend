@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import pl.ib.beauty.model.dto.ContactDtoResponse;
 import pl.ib.beauty.model.dto.ConversationDtoResponse;
 import pl.ib.beauty.model.dto.MessageDtoRequest;
 import pl.ib.beauty.model.dto.MessageDtoResponse;
@@ -23,6 +24,11 @@ public class MessageController {
     @GetMapping("/conversations")
     public List<ConversationDtoResponse> getConversations() {
         return messageService.getConversations();
+    }
+
+    @GetMapping("/contacts")
+    public List<ContactDtoResponse> getContacts() {
+        return messageService.getContacts();
     }
 
     @GetMapping("/{partnerId}")

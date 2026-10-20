@@ -4,6 +4,7 @@ import com.google.maps.model.LatLng;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -132,7 +133,10 @@ public class CourseService {
         return courseRepository.save(course);
     }
 
+    // Every write refreshes the cached copy that getCourseById serves, so edits, deletes and new
+    // participants show up immediately instead of after the cache TTL.
     @Transactional
+    @CachePut(cacheNames = "course", key = "#id")
     public Course updateCourse(Long id, Course course) {
         Course existingCourse = courseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + id));
@@ -154,6 +158,7 @@ public class CourseService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "course", key = "#id")
     public void deleteCourseById(Long id) {
         courseRepository.deleteById(id);
     }
@@ -187,6 +192,7 @@ public class CourseService {
     }
 
     @Transactional
+    @CachePut(cacheNames = "course", key = "#result.id")
     public Course saveCourse(Course course) {
         return courseRepository.save(course);
     }

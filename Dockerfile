@@ -1,7 +1,7 @@
 # The jar is built by Maven before docker build (the Jenkins Package stage,
 # or `mvn package -DskipTests` locally), so the image only wraps it and no
 # dependencies are downloaded inside Docker.
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 WORKDIR /app
 COPY target/*.jar app.jar
 # application.yml sets server.port 8082; the container, Service and

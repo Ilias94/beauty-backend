@@ -5,6 +5,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -36,11 +37,11 @@ public class AssistantService {
 
     private final ChatClient chatClient;
     private final AssistantTools assistantTools;
-    private final AssistantUsageLimiter usageLimiter;
+    private final DailyUsageLimiter usageLimiter;
     private final boolean enabled;
 
     public AssistantService(ChatClient.Builder chatClientBuilder, AssistantTools assistantTools,
-                            AssistantUsageLimiter usageLimiter, @Value("${assistant.enabled}") boolean enabled) {
+                            @Qualifier("assistantUsageLimiter") DailyUsageLimiter usageLimiter, @Value("${assistant.enabled}") boolean enabled) {
         this.chatClient = chatClientBuilder.defaultSystem(SYSTEM_PROMPT).build();
         this.assistantTools = assistantTools;
         this.usageLimiter = usageLimiter;

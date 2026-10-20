@@ -23,7 +23,7 @@ class AssistantServiceTest {
 
     private final ChatClient chatClient = mock(ChatClient.class);
     private final ChatClient.Builder chatClientBuilder = mock(ChatClient.Builder.class);
-    private final AssistantUsageLimiter usageLimiter = mock(AssistantUsageLimiter.class);
+    private final DailyUsageLimiter usageLimiter = mock(DailyUsageLimiter.class);
     private final AssistantDtoRequest request = new AssistantDtoRequest("Czy moja płatność przeszła?", List.of());
 
     @BeforeEach

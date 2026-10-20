@@ -6,10 +6,8 @@ import pl.ib.beauty.model.dao.Comment;
 import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.Rating;
 import pl.ib.beauty.model.dao.User;
-import pl.ib.beauty.repository.CommentRepository;
+import pl.ib.beauty.model.dto.RatingSummaryDto;
 import pl.ib.beauty.repository.RatingRepository;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +31,9 @@ public class RatingService {
 
         Rating saved = ratingRepository.save(rating);
 
+        RatingSummaryDto summary = getSummary(courseId);
+        courseService.updateRating(courseId, summary.average(), summary.count());
+
         if (instructorRating != null && courseById.getCreator() != null) {
             Long instructorId = courseById.getCreator().getId();
             ratingRepository.findAverageInstructorRating(instructorId)
@@ -49,6 +50,10 @@ public class RatingService {
                 .orElseGet(() -> Rating.builder()
                         .value(0)
                         .build());
+    }
+
+    public RatingSummaryDto getSummary(Long courseId) {
+        return RatingSummaryDto.of(ratingRepository.findValuesByCourseId(courseId));
     }
 
 }

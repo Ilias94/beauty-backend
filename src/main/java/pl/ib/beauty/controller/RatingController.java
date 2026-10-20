@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pl.ib.beauty.mapper.RatingMapper;
 import pl.ib.beauty.model.dto.RatingDto;
+import pl.ib.beauty.model.dto.RatingSummaryDto;
 import pl.ib.beauty.service.RatingService;
 
 @RestController
@@ -21,6 +22,11 @@ public class RatingController {
     @PreAuthorize("isAuthenticated()")
     public RatingDto saveRating(@RequestBody RatingDto ratingDto) {
         return ratingMapper.ratingToRatingDto(ratingService.saveRating(ratingDto.courseId(), ratingDto.value(), ratingDto.instructorRating()));
+    }
+
+    @GetMapping("/course/{courseId}/summary")
+    public RatingSummaryDto getRatingSummary(@PathVariable Long courseId) {
+        return ratingService.getSummary(courseId);
     }
 
     @GetMapping("/{courseId}")

@@ -28,6 +28,7 @@ public record CourseDtoResponse(Long id,
                                 AddressDtoResponse address,
                                 CategoryDtoResponse category,
                                 Double rating,
+                                int ratingCount,
                                 BigDecimal price,
                                 Long parentCourseId) {
 }

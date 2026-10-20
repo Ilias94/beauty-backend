@@ -158,6 +158,16 @@ public class CourseService {
     }
 
     @Transactional
+    @CachePut(cacheNames = "course", key = "#id")
+    public Course updateRating(Long id, double average, int count) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + id));
+        course.setRating(average);
+        course.setRatingCount(count);
+        return courseRepository.save(course);
+    }
+
+    @Transactional
     @CacheEvict(cacheNames = "course", key = "#id")
     public void deleteCourseById(Long id) {
         courseRepository.deleteById(id);

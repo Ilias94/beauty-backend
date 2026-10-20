@@ -32,6 +32,7 @@ public class Course implements IdentifiedDataSerializable {
     private LocalDateTime endDate;
     private int maxParticipants;
     private Double rating;
+    private int ratingCount;
     private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
@@ -119,6 +120,8 @@ public class Course implements IdentifiedDataSerializable {
         // creator's name, so cached courses still show who teaches them
         out.writeString(creator.getFirstName());
         out.writeString(creator.getLastName());
+        // added in V31
+        out.writeInt(ratingCount);
     }
 
     @Override
@@ -174,6 +177,12 @@ public class Course implements IdentifiedDataSerializable {
             }
         } catch (Exception ignored) {
             // older cache entry
+            return;
+        }
+        try {
+            this.ratingCount = in.readInt();
+        } catch (Exception ignored) {
+            // cached before V31
         }
     }
 }

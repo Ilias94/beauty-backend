@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "google.accessKey=test-key",
         "aws.accessKey=test-key",
         "aws.secretKey=test-secret",
-        "stripe.secretKey=sk_test_placeholder",
+        "stripe.secretKey=test-key",
         "spring.security.oauth2.client.registration.google.client-id=test-client",
         "spring.security.oauth2.client.registration.google.client-secret=test-secret",
         // The test profile points mail at Gmail; don't let its health check depend on the network.

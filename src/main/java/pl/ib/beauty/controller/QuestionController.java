@@ -1,5 +1,6 @@
 package pl.ib.beauty.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ public class QuestionController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(operationId = "delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         questionService.delete(id);

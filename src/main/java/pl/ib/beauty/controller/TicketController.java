@@ -1,6 +1,7 @@
 package pl.ib.beauty.controller;
 
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,6 +39,7 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
+    @Operation(operationId = "getById")
     @PreAuthorize("isAuthenticated()")
     public TicketDto getById(@PathVariable Long id) {
         return ticketService.getById(id);

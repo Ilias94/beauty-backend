@@ -1,6 +1,7 @@
 package pl.ib.beauty.controller;
 
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,6 +34,7 @@ public class FaqController {
     }
 
     @GetMapping("/{id}")
+    @Operation(operationId = "getFaq")
     public FaqDtoResponse getById(@PathVariable UUID id) {
         return faqMapper.faqToFaqDto(faqService.getById(id));
     }
@@ -49,6 +51,7 @@ public class FaqController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(operationId = "deleteFaq")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         faqService.deleteById(id);

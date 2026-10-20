@@ -25,7 +25,7 @@ public class VideoController {
         return videoService.getVideosForCourse(courseId);
     }
 
-    @PostMapping(value = "/upload/{courseId}")
+    @PostMapping(value = "/upload/{courseId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void uploadVideos(@PathVariable Long courseId,
                              @RequestParam @Valid List<@ExtensionValid(supportedExtensions = {"mp4", "avi"}) MultipartFile> videos) {
         videoService.uploadVideos(courseId, videos);

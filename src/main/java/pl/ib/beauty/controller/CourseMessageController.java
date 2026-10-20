@@ -1,6 +1,7 @@
 package pl.ib.beauty.controller;
 
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,6 +20,7 @@ public class CourseMessageController {
     private final CourseMessageService courseMessageService;
 
     @GetMapping
+    @Operation(operationId = "getCourseMessages")
     public List<CourseMessageDtoResponse> getMessages(@PathVariable Long courseId) {
         return courseMessageService.getMessages(courseId);
     }

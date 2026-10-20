@@ -1,6 +1,6 @@
 package pl.ib.beauty.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class AIService {
 
     private final ChatModel chatModel;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     public String query(String prompt) {
         try {
@@ -61,7 +61,7 @@ public class AIService {
             ChatResponse chatResponse = chatModel.call(new Prompt(prompt));
             String[] split = chatResponse.getResult().getOutput().getText().split("\\R");
             String join = String.join("\n", Arrays.copyOfRange(split, 1, split.length - 1));
-            return objectMapper.readValue(join, AiTicketResponseDto.class);
+            return jsonMapper.readValue(join, AiTicketResponseDto.class);
         } catch (Exception e) {
             log.warn("AI ticket response unavailable: {}", e.getMessage());
             return new AiTicketResponseDto(0, "");

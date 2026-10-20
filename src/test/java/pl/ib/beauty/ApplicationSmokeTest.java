@@ -7,14 +7,13 @@ import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import pl.ib.beauty.config.HazelcastConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "management.health.mail.enabled=false"
 })
 @ActiveProfiles("test")
+@AutoConfigureRestTestClient
 @Import(ApplicationSmokeTest.IsolatedHazelcast.class)
 class ApplicationSmokeTest extends PostgreSqlTestContainer {
 
@@ -45,21 +45,20 @@ class ApplicationSmokeTest extends PostgreSqlTestContainer {
     EmbeddingModel embeddingModel;
 
     @Autowired
-    TestRestTemplate rest;
+    RestTestClient client;
 
     @Test
     void startsAndServesHealthCatalogAndApiDocs() {
-        ResponseEntity<String> health = rest.getForEntity("/actuator/health", String.class);
-        assertThat(health.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(health.getBody()).contains("\"status\":\"UP\"");
-
-        ResponseEntity<String> courses = rest.getForEntity("/api/v1/courses?page=0&size=1", String.class);
-        assertThat(courses.getStatusCode()).isEqualTo(HttpStatus.OK);
-
+        assertThat(getOk("/actuator/health")).contains("\"status\":\"UP\"");
+        getOk("/api/v1/courses?page=0&size=1");
         // The frontend's API client is generated from this document.
-        ResponseEntity<String> apiDocs = rest.getForEntity("/v3/api-docs", String.class);
-        assertThat(apiDocs.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(apiDocs.getBody()).contains("\"operationId\":\"answerTicketQuestion\"");
+        assertThat(getOk("/v3/api-docs")).contains("\"operationId\":\"answerTicketQuestion\"");
+    }
+
+    private String getOk(String uri) {
+        return client.get().uri(uri).exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class).returnResult().getResponseBody();
     }
 
     /** Its own cluster with discovery off, so the test never joins a locally running backend's cache. */

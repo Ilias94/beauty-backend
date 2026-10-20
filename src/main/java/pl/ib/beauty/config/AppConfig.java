@@ -1,7 +1,5 @@
 package pl.ib.beauty.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.aop.CountedAspect;
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -35,11 +33,4 @@ public class AppConfig {
     CountedAspect countedAspect(MeterRegistry meterRegistry) {
         return new CountedAspect(meterRegistry);
     }
-
-//    @Bean
-//    public ObjectMapper objectMapper() {
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//        return objectMapper;
-//    }
 }

@@ -1,6 +1,5 @@
 package pl.ib.beauty.service;
 
-import groovy.util.logging.Slf4j;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -22,7 +21,6 @@ import java.util.*;
 @lombok.extern.slf4j.Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;

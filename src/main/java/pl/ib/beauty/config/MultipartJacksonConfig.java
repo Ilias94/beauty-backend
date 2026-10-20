@@ -1,16 +1,16 @@
 package pl.ib.beauty.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.ResolvableType;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
+import org.springframework.http.converter.AbstractJacksonHttpMessageConverter;
+import tools.jackson.databind.json.JsonMapper;
 
-import java.lang.reflect.Type;
-
+/** Reads JSON multipart parts sent as application/octet-stream (read-only: never used to write responses). */
 @Configuration
-public class MultipartJacksonConfig extends AbstractJackson2HttpMessageConverter {
-    protected MultipartJacksonConfig(ObjectMapper objectMapper) {
-        super(objectMapper, MediaType.APPLICATION_OCTET_STREAM);
+public class MultipartJacksonConfig extends AbstractJacksonHttpMessageConverter<JsonMapper> {
+    protected MultipartJacksonConfig(JsonMapper jsonMapper) {
+        super(jsonMapper, MediaType.APPLICATION_OCTET_STREAM);
     }
 
     @Override
@@ -19,7 +19,7 @@ public class MultipartJacksonConfig extends AbstractJackson2HttpMessageConverter
     }
 
     @Override
-    public boolean canWrite(Type type, Class<?> clazz, MediaType mediaType) {
+    public boolean canWrite(ResolvableType type, Class<?> clazz, MediaType mediaType) {
         return false;
     }
 

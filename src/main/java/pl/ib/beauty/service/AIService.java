@@ -24,7 +24,14 @@ public class AIService {
 
     public String query(String prompt) {
         try {
-            ChatResponse chatResponse = chatModel.call(new Prompt("Wygeneruj mi opis uslugi dla tytulu: %s".formatted(prompt)));
+            ChatResponse chatResponse = chatModel.call(new Prompt("""
+                    Napisz opis kursu kosmetycznego do katalogu kursów. Tytuł kursu: %s
+
+                    Napisz po polsku 2–3 krótkie akapity (razem około 600–900 znaków): dla kogo jest kurs,
+                    jak wyglądają zajęcia i co uczestnik będzie umiał po kursie.
+                    Pisz zwykłym tekstem: bez tytułu, bez nagłówków, bez list, bez Markdownu i bez emoji.
+                    Nie wymyślaj ceny, terminu, miejsca ani nazwiska instruktorki.
+                    """.formatted(prompt)));
             return chatResponse.getResult().getOutput().getText();
         } catch (Exception e) {
             log.warn("AI description generation unavailable: {}", e.getMessage());

@@ -1,8 +1,9 @@
 pipeline {
     agent any
 
+    // Maven comes from the project's wrapper (mvnw.cmd, version pinned in .mvn/wrapper), not a Jenkins
+    // tool: the tool pointed into IntelliJ's bundled Maven, which moved when IntelliJ updated.
     tools {
-        maven 'Maven'
         jdk 'jdk'
     }
 
@@ -22,6 +23,9 @@ pipeline {
         // The Release stage also pushes commits and the tag with it, so it needs write access.
         GIT_CREDENTIALS_ID = "5fec19ce-b42c-4aa8-9b1f-eac8eadbeca6" // gitleaks:allow (an ID, not the token)
         // Release builds tag the image with the released version, regular builds with the build number.
+        // Java's own trust store rejects the TLS certificates seen on this machine's connections
+        // (antivirus inspection), so Maven uses the Windows certificate store to reach Maven Central.
+        MAVEN_OPTS = "-Djavax.net.ssl.trustStoreType=Windows-ROOT"
         IMAGE_TAG = "${params.RELEASE ? params.RELEASE_VERSION : env.BUILD_NUMBER}"
     }
 
@@ -90,7 +94,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                bat 'mvn -B clean compile'
+                bat '.\\mvnw.cmd -B clean compile'
             }
         }
 
@@ -98,7 +102,7 @@ pipeline {
             // Tests rely on TestContainers spinning up real PostgreSQL,
             // so the Jenkins agent needs Docker available.
             steps {
-                bat 'mvn -B test'
+                bat '.\\mvnw.cmd -B test'
             }
             post {
                 always {
@@ -120,7 +124,7 @@ pipeline {
                     bat 'git config user.email "jenkins@localhost"'
                     // Commits the release version, tags it (tagNameFormat in pom.xml), commits the
                     // next SNAPSHOT and pushes all of it. Tests already ran in the Test stage.
-                    bat "mvn -B release:prepare -DreleaseVersion=${params.RELEASE_VERSION} -Dusername=%GIT_USER% -Dpassword=%GIT_TOKEN% -Darguments=-DskipTests"
+                    bat ".\\mvnw.cmd -B release:prepare -DreleaseVersion=${params.RELEASE_VERSION} -Dusername=%GIT_USER% -Dpassword=%GIT_TOKEN% -Darguments=-DskipTests"
                 }
                 // prepare leaves the branch on the next SNAPSHOT commit; the stages below
                 // have to build the release. Keep v in sync with tagNameFormat in pom.xml.
@@ -136,7 +140,7 @@ pipeline {
                 }
             }
             steps {
-                bat 'mvn -B package -DskipTests'
+                bat '.\\mvnw.cmd -B package -DskipTests'
                 // A step rather than post { success }: that condition looks at the whole
                 // build, so an UNSTABLE Secret Scan would silently skip archiving the jar.
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true

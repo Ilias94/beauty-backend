@@ -11,6 +11,7 @@ import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTe
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -68,6 +69,22 @@ class ApplicationSmokeTest extends PostgreSqlTestContainer {
         // Without signing in: no signed links to a course's recordings, no changes to them.
         client.get().uri("/api/v1/video/1").exchange().expectStatus().is4xxClientError();
         client.delete().uri("/api/v1/video/1").exchange().expectStatus().is4xxClientError();
+    }
+
+    @Test
+    void letsOnlyTheConfiguredFrontendCallTheApiFromABrowser() {
+        // cors.url in the test profile is the local frontend.
+        client.options().uri("/api/v1/courses")
+                .header(HttpHeaders.ORIGIN, "http://localhost:4200")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:4200");
+        client.options().uri("/api/v1/courses")
+                .header(HttpHeaders.ORIGIN, "https://beauty-front.onrender.com")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+                .exchange()
+                .expectStatus().isForbidden();
     }
 
     private String getOk(String uri) {

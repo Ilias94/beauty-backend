@@ -58,7 +58,7 @@ Tests load JWT keys from classpath (`classpath:public-key.pem`, `classpath:pkcs8
 
 ## CORS
 
-Allowed origins: `http://localhost:4200` (dev) and `https://beauty-front.onrender.com/` (prod). Configured in `CorsConfig`.
+The allowed origin is `cors.url` (`CORS_URL`, default `http://localhost:4200`), applied in `SecurityConfig.corsConfigurationSource`.
 
 ## Testing
 

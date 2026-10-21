@@ -11,12 +11,14 @@ import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTe
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import pl.ib.beauty.config.HazelcastConfig;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,8 +56,7 @@ class ApplicationSmokeTest extends PostgreSqlTestContainer {
         assertThat(getOk("/actuator/health")).contains("\"status\":\"UP\"");
         getOk("/api/v1/courses?page=0&size=1");
         // The frontend's API client is generated from this document.
-        assertThat(getOk("/v3/api-docs")).contains("\"operationId\":\"answerTicketQuestion\"");
-    }
+        assertThat(getOk("/v3/api-docs")).contains("\"operationId\":\"answerTicketQuestion\"");    }
 
     @Test
     void keepsSecretsAndPaidMaterialPrivate() {
@@ -68,6 +69,18 @@ class ApplicationSmokeTest extends PostgreSqlTestContainer {
         // Without signing in: no signed links to a course's recordings, no changes to them.
         client.get().uri("/api/v1/video/1").exchange().expectStatus().is4xxClientError();
         client.delete().uri("/api/v1/video/1").exchange().expectStatus().is4xxClientError();
+    }
+
+    @Test
+    void onlyStripeCanMarkAPaymentAsPaid() {
+        // A webhook without a valid Stripe signature is refused before it can enrol anyone.
+        client.post().uri("/api/v1/payment/webhook")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Stripe-Signature", "t=1,v1=forged")
+                .body("{\"type\": \"checkout.session.completed\"}")
+                .exchange().expectStatus().isBadRequest();
+        // A payment's status is only for the signed-in buyer.
+        client.get().uri("/api/v1/payment/" + UUID.randomUUID()).exchange().expectStatus().is4xxClientError();
     }
 
     private String getOk(String uri) {

@@ -1,20 +1,26 @@
 package pl.ib.beauty.service;
 
+import com.stripe.exception.SignatureVerificationException;
+import com.stripe.model.Event;
+import com.stripe.model.checkout.Session;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pl.ib.beauty.model.Status;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
+
 import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.Payment;
 import pl.ib.beauty.model.dao.User;
+import pl.ib.beauty.model.dto.PaymentStatusDtoResponse;
 import pl.ib.beauty.repository.PaymentRepository;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -51,6 +57,8 @@ public class PaymentService {
                 .orderId(orderId)
                 .user(user)
                 .course(courseById)
+                .amount(courseById.getPrice())
+                .currency(StripeService.CURRENCY)
                 .status(Status.IN_PROGRESS)
                 .build();
 
@@ -61,57 +69,90 @@ public class PaymentService {
                 user.getId(),
                 courseById.getId());
 
-        String sessionUrl = stripeService.createSession(courseById, orderId);
-        return sessionUrl;
+        Session session = stripeService.createSession(courseById, orderId, user.getEmail());
+        payment.setStripeSessionId(session.getId());
+        paymentRepository.save(payment);
+        return session.getUrl();
     }
 
-    public Optional<Payment> updateStatus(UUID orderId, Status status) {
+    /** Status of the current user's payment, read by the page Stripe Checkout returns to. */
+    public PaymentStatusDtoResponse getPaymentStatus(UUID orderId) {
+        User user = userService.currentLoginUser();
         return paymentRepository.findByOrderId(orderId)
-                .map(payment -> {
-                    payment.setStatus(status);
-                    paymentRepository.save(payment);
-                    if (status == Status.SUCCESS) {
-                        registerUserToCourse(payment);
-                    }
-                    return payment;
-                });
+                .filter(payment -> Objects.equals(payment.getUser().getId(), user.getId()))
+                .map(payment -> new PaymentStatusDtoResponse(payment.getOrderId(), payment.getStatus(),
+                        payment.getCourse().getId(), payment.getCourse().getTitle()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment not found"));
     }
 
-//    private void registerUserToCourse(Payment payment) {
-//
-//        User user = payment.getUser();
-//        Course course = payment.getCourse();
-//
-//        if (course.getParticipants().contains(user)) {
-//            return;
-//        }
-//
-//
-//        course.getParticipants().add(user);
-//        user.getCoursesParticipating().add(course);
-//
-//        courseService.saveCourse(course);
-//    }
-private void registerUserToCourse(Payment payment) {
+    @Transactional
+    public void handleWebhook(String payload, String signature) {
+        Event event;
+        try {
+            event = stripeService.constructEvent(payload, signature);
+        } catch (SignatureVerificationException e) {
+            log.warn("Rejected a Stripe webhook with an invalid signature");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
+        }
 
-    User user = payment.getUser();
-    Course course = payment.getCourse();
-
-    if (course.getParticipants().contains(user)) {
-        return;
+        if (event.getType().startsWith("checkout.session.")) {
+            handleCheckoutEvent(event.getType(), (Session) stripeService.eventObject(event));
+        }
     }
 
-    course.getParticipants().add(user);
-    user.getCoursesParticipating().add(course);
+    public void handleCheckoutEvent(String eventType, Session session) {
+        Status status = switch (eventType) {
+            // BLIK and Przelewy24 can complete the checkout before the money arrives; async_payment_* follows.
+            case "checkout.session.completed" -> "paid".equals(session.getPaymentStatus()) ? Status.SUCCESS : null;
+            case "checkout.session.async_payment_succeeded" -> Status.SUCCESS;
+            case "checkout.session.async_payment_failed", "checkout.session.expired" -> Status.FAILED;
+            default -> null;
+        };
+        if (status == null || session.getClientReferenceId() == null) {
+            return;
+        }
 
-    courseService.saveCourse(course);
+        UUID orderId = UUID.fromString(session.getClientReferenceId());
+        paymentRepository.findByOrderId(orderId).ifPresentOrElse(
+                payment -> updateStatus(payment, status, session.getPaymentIntent()),
+                () -> log.warn("Stripe event {} for unknown orderId {}", eventType, orderId));
+    }
 
-    // 🔔 NOTYFIKACJA
-    notificationSocketService.notifyUser(
-            course.getCreator().getId(),
-            "New sign in for course: " + course.getTitle() +
-                    " (participant: " + user.getEmail() + ")"
-    );
-}
+    private void updateStatus(Payment payment, Status status, String paymentIntentId) {
+        // Stripe retries and may resend events; only a payment still waiting for its outcome changes.
+        if (payment.getStatus() != Status.IN_PROGRESS) {
+            return;
+        }
+        payment.setStatus(status);
+        payment.setStripePaymentIntentId(paymentIntentId);
+        paymentRepository.save(payment);
+        log.info("Payment {} is now {}", payment.getOrderId(), status);
+
+        if (status == Status.SUCCESS) {
+            registerUserToCourse(payment);
+        }
+    }
+
+    private void registerUserToCourse(Payment payment) {
+
+        User user = payment.getUser();
+        Course course = payment.getCourse();
+
+        if (course.getParticipants().contains(user)) {
+            return;
+        }
+
+        course.getParticipants().add(user);
+        user.getCoursesParticipating().add(course);
+
+        courseService.saveCourse(course);
+
+        // 🔔 NOTYFIKACJA
+        notificationSocketService.notifyUser(
+                course.getCreator().getId(),
+                "New sign in for course: " + course.getTitle() +
+                        " (participant: " + user.getEmail() + ")"
+        );
+    }
 
 }

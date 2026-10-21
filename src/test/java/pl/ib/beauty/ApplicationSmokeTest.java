@@ -16,6 +16,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import pl.ib.beauty.config.HazelcastConfig;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -53,6 +55,19 @@ class ApplicationSmokeTest extends PostgreSqlTestContainer {
         getOk("/api/v1/courses?page=0&size=1");
         // The frontend's API client is generated from this document.
         assertThat(getOk("/v3/api-docs")).contains("\"operationId\":\"answerTicketQuestion\"");
+    }
+
+    @Test
+    void keepsSecretsAndPaidMaterialPrivate() {
+        // The Kubernetes probes and the Jenkins smoke test read this one.
+        assertThat(getOk("/actuator/health/readiness")).contains("\"status\":\"UP\"");
+        // These would hand out the environment's secrets (keys, passwords) to anyone.
+        for (String endpoint : List.of("/actuator/env", "/actuator/heapdump", "/actuator/configprops", "/actuator/beans")) {
+            client.get().uri(endpoint).exchange().expectStatus().is4xxClientError();
+        }
+        // Without signing in: no signed links to a course's recordings, no changes to them.
+        client.get().uri("/api/v1/video/1").exchange().expectStatus().is4xxClientError();
+        client.delete().uri("/api/v1/video/1").exchange().expectStatus().is4xxClientError();
     }
 
     private String getOk(String uri) {

@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long>, RevisionRepository<User, Long, Integer> {
 //    @EntityGraph(attributePaths = "roleList", type = EntityGraph.EntityGraphType.LOAD)
     Optional<User> findByEmail(String email);
+
+    /** Whether the user is enrolled in the course. */
+    boolean existsByIdAndCoursesParticipating_Id(Long userId, Long courseId);
 }

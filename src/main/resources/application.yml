@@ -15,6 +15,11 @@ spring:
   jackson:
     serialization:
       fail-on-empty-beans: false
+  # Course photos arrive resized in the browser; the limits leave room for a gallery sent in one go.
+  servlet:
+    multipart:
+      max-file-size: 6MB
+      max-request-size: 50MB
   flyway:
 
     enabled: true

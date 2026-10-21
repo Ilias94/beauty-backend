@@ -159,6 +159,15 @@ public class CourseService {
 
     @Transactional
     @CachePut(cacheNames = "course", key = "#id")
+    public Course updateCover(Long id, String imageUrl) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + id));
+        course.setImageUrl(imageUrl);
+        return courseRepository.save(course);
+    }
+
+    @Transactional
+    @CachePut(cacheNames = "course", key = "#id")
     public Course updateRating(Long id, double average, int count) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + id));

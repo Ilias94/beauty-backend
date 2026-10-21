@@ -117,6 +117,12 @@ spec:
                   name: app-secret
                   key: stripe-webhook-secret
                   optional: true
+            - name: STRIPE_CONNECT_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: stripe-connect-webhook-secret
+                  optional: true
           volumeMounts:
             - name: jwt-keys
               mountPath: /app/keys

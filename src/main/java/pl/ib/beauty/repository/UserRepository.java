@@ -11,6 +11,8 @@ public interface UserRepository extends JpaRepository<User, Long>, RevisionRepos
 //    @EntityGraph(attributePaths = "roleList", type = EntityGraph.EntityGraphType.LOAD)
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByStripeAccountId(String stripeAccountId);
+
     /** Whether the user is enrolled in the course. */
     boolean existsByIdAndCoursesParticipating_Id(Long userId, Long courseId);
 }

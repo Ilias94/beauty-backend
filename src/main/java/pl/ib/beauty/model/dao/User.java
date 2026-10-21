@@ -47,4 +47,13 @@ public class User extends Auditable {
     @NotAudited
     @Column(name = "instructor_rating")
     private Double instructorRating;
+    // Stripe Connect account course payments are paid out to; the flags mirror Stripe's account.updated.
+    @NotAudited
+    private String stripeAccountId;
+    @NotAudited
+    private boolean stripeDetailsSubmitted;
+    @NotAudited
+    private boolean stripeChargesEnabled;
+    @NotAudited
+    private boolean stripePayoutsEnabled;
 }

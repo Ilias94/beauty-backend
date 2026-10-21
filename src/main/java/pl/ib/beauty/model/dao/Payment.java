@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.ib.beauty.model.Status;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -26,4 +27,9 @@ public class Payment {
     private Course course;
     @Enumerated(value = EnumType.STRING)
     private Status status;
+    // Price at checkout time; the course price can change later.
+    private BigDecimal amount;
+    private String currency;
+    private String stripeSessionId;
+    private String stripePaymentIntentId;
 }

@@ -29,6 +29,10 @@ public class StripeService {
     public static final String CURRENCY = "PLN";
     // Stripe's minimum; an abandoned checkout expires and its payment is marked FAILED.
     private static final Duration CHECKOUT_LIFETIME = Duration.ofMinutes(30);
+    // Schools and Educational Services, Not Elsewhere Classified.
+    private static final String EDUCATIONAL_SERVICES_MCC = "8299";
+    private static final String INSTRUCTOR_PRODUCT_DESCRIPTION =
+            "Szkolenia i kursy z branży beauty (online i stacjonarne), sprzedawane przez platformę Bellademy (bellademy.pl).";
 
     private final StripeCredentialConfig stripeCredentialConfig;
 
@@ -83,6 +87,12 @@ public class StripeService {
                 .setCapabilities(AccountCreateParams.Capabilities.builder()
                         .setCardPayments(AccountCreateParams.Capabilities.CardPayments.builder().setRequested(true).build())
                         .setTransfers(AccountCreateParams.Capabilities.Transfers.builder().setRequested(true).build())
+                        .build())
+                // Answers onboarding's industry and website questions up front: instructors often have no
+                // website of their own, and Stripe takes a product description in its place.
+                .setBusinessProfile(AccountCreateParams.BusinessProfile.builder()
+                        .setMcc(EDUCATIONAL_SERVICES_MCC)
+                        .setProductDescription(INSTRUCTOR_PRODUCT_DESCRIPTION)
                         .build())
                 .putMetadata("userId", String.valueOf(instructor.getId()))
                 .build();

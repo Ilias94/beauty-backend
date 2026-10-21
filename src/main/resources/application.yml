@@ -88,6 +88,14 @@ google:
 
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
+  # Locally: printed by `stripe listen --forward-to localhost:8082/api/v1/payment/webhook`.
+  # Empty: every webhook call fails the signature check, so no payment can be marked paid.
+  webhookSecret: ${STRIPE_WEBHOOK_SECRET:}
+  returnUrl: ${STRIPE_RETURN_URL:http://localhost:4200/payment-status}
+  # Locally: printed by `stripe listen ... --forward-connect-to localhost:8082/api/v1/connect/webhook`
+  # (the same whsec_ as above); in production a separate Connect endpoint in the dashboard.
+  connectWebhookSecret: ${STRIPE_CONNECT_WEBHOOK_SECRET:}
+  payoutsUrl: ${STRIPE_PAYOUTS_URL:http://localhost:4200/payouts}
 
 assistant:
   # Turns the /api/v1/assistant chat off without a redeploy of the frontend.

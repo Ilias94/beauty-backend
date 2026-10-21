@@ -25,7 +25,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: beautyapplicationilias@gmail.com
-    password: kfna sibw nutu ephb
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -55,5 +55,9 @@ google:
 
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
+  webhookSecret: ${STRIPE_WEBHOOK_SECRET:}
+  returnUrl: http://localhost:4200/payment-status
+  connectWebhookSecret: ${STRIPE_CONNECT_WEBHOOK_SECRET:}
+  payoutsUrl: http://localhost:4200/payouts
 cors:
   url: http://localhost:4200

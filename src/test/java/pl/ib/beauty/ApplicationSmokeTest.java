@@ -12,12 +12,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import pl.ib.beauty.config.HazelcastConfig;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -85,6 +87,30 @@ class ApplicationSmokeTest extends PostgreSqlTestContainer {
                 .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
                 .exchange()
                 .expectStatus().isForbidden();
+    }
+
+    @Test
+    void onlyStripeCanMarkAPaymentAsPaid() {
+        // A webhook without a valid Stripe signature is refused before it can enrol anyone.
+        client.post().uri("/api/v1/payment/webhook")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Stripe-Signature", "t=1,v1=forged")
+                .body("{\"type\": \"checkout.session.completed\"}")
+                .exchange().expectStatus().isBadRequest();
+        // A payment's status is only for the signed-in buyer.
+        client.get().uri("/api/v1/payment/" + UUID.randomUUID()).exchange().expectStatus().is4xxClientError();
+    }
+
+    @Test
+    void onlyStripeCanChangeAnInstructorsPayoutAccount() {
+        client.post().uri("/api/v1/connect/webhook")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Stripe-Signature", "t=1,v1=forged")
+                .body("{\"type\": \"account.updated\"}")
+                .exchange().expectStatus().isBadRequest();
+        // Onboarding and the account's status are for signed-in instructors.
+        client.post().uri("/api/v1/connect/onboarding").exchange().expectStatus().is4xxClientError();
+        client.get().uri("/api/v1/connect/status").exchange().expectStatus().is4xxClientError();
     }
 
     private String getOk(String uri) {

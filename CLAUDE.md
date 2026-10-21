@@ -51,7 +51,7 @@ JWT_PRIVATE_KEY, JWT_PUBLIC_KEY
 AWS_ACCESS_KEY, AWS_SECRET_KEY
 ANTHROPIC_API_KEY
 GOOGLE_ACCESS_KEY
-STRIPE_SECRET_KEY
+STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 ```
 
 Tests load JWT keys from classpath (`classpath:public-key.pem`, `classpath:pkcs8.key`) via `application-test.yml`.

@@ -56,7 +56,8 @@ class ApplicationSmokeTest extends PostgreSqlTestContainer {
         assertThat(getOk("/actuator/health")).contains("\"status\":\"UP\"");
         getOk("/api/v1/courses?page=0&size=1");
         // The frontend's API client is generated from this document.
-        assertThat(getOk("/v3/api-docs")).contains("\"operationId\":\"answerTicketQuestion\"");    }
+        assertThat(getOk("/v3/api-docs")).contains("\"operationId\":\"answerTicketQuestion\"");
+    }
 
     @Test
     void keepsSecretsAndPaidMaterialPrivate() {
@@ -81,6 +82,18 @@ class ApplicationSmokeTest extends PostgreSqlTestContainer {
                 .exchange().expectStatus().isBadRequest();
         // A payment's status is only for the signed-in buyer.
         client.get().uri("/api/v1/payment/" + UUID.randomUUID()).exchange().expectStatus().is4xxClientError();
+    }
+
+    @Test
+    void onlyStripeCanChangeAnInstructorsPayoutAccount() {
+        client.post().uri("/api/v1/connect/webhook")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Stripe-Signature", "t=1,v1=forged")
+                .body("{\"type\": \"account.updated\"}")
+                .exchange().expectStatus().isBadRequest();
+        // Onboarding and the account's status are for signed-in instructors.
+        client.post().uri("/api/v1/connect/onboarding").exchange().expectStatus().is4xxClientError();
+        client.get().uri("/api/v1/connect/status").exchange().expectStatus().is4xxClientError();
     }
 
     private String getOk(String uri) {

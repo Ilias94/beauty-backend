@@ -15,4 +15,8 @@ public class StripeCredentialConfig {
     private String webhookSecret;
     // Frontend page Stripe Checkout sends the buyer back to, with ?orderId=... appended.
     private String returnUrl;
+    // Signs Connect events (account.updated) posted to /api/v1/connect/webhook; a separate endpoint in Stripe.
+    private String connectWebhookSecret;
+    // Frontend page an instructor returns to from Stripe's onboarding.
+    private String payoutsUrl;
 }

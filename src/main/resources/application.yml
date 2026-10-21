@@ -117,7 +117,8 @@ hazelcast:
     rest-api:
       enabled: true
 cors:
-  url: https://beauty-front.onrender.com/
+  # The frontend's origin, without a trailing slash (e.g. https://bellademy.pl).
+  url: ${CORS_URL:http://localhost:4200}
 
 logging:
   level:

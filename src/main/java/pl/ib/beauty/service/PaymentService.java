@@ -12,14 +12,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pl.ib.beauty.model.Status;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import pl.ib.beauty.config.StripeCredentialConfig;
 import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.Payment;
 import pl.ib.beauty.model.dao.User;
 import pl.ib.beauty.model.dto.PaymentStatusDtoResponse;
 import pl.ib.beauty.repository.PaymentRepository;
+import pl.ib.beauty.repository.UserRepository;
 
 import java.util.UUID;
 
@@ -28,10 +32,14 @@ import java.util.UUID;
 @Slf4j
 
 public class PaymentService {
+    private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
+
     private final PaymentRepository paymentRepository;
     private final CourseService courseService;
     private final UserService userService;
+    private final UserRepository userRepository;
     private final StripeService stripeService;
+    private final StripeCredentialConfig stripeCredentialConfig;
     private final NotificationSocketService notificationSocketService;
 
     @SneakyThrows
@@ -53,12 +61,22 @@ public class PaymentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Already enrolled in this course");
         }
 
+        // A cached course carries only part of its creator, so the Stripe account is read from the database.
+        User instructor = userRepository.findById(courseById.getCreator().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Instructor not found"));
+        if (instructor.getStripeAccountId() == null || !instructor.isStripeChargesEnabled()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "The instructor can't take payments yet");
+        }
+        BigDecimal platformFee = platformFee(courseById.getPrice(), instructor);
+
         Payment payment = Payment.builder()
                 .orderId(orderId)
                 .user(user)
                 .course(courseById)
                 .amount(courseById.getPrice())
                 .currency(StripeService.CURRENCY)
+                .platformFee(platformFee)
+                .destinationAccount(instructor.getStripeAccountId())
                 .status(Status.IN_PROGRESS)
                 .build();
 
@@ -69,10 +87,19 @@ public class PaymentService {
                 user.getId(),
                 courseById.getId());
 
-        Session session = stripeService.createSession(courseById, orderId, user.getEmail());
+        Session session = stripeService.createSession(courseById, orderId, user.getEmail(),
+                instructor.getStripeAccountId(), platformFee);
         payment.setStripeSessionId(session.getId());
         paymentRepository.save(payment);
         return session.getUrl();
+    }
+
+    /** The platform's cut in zloty: the instructor's own percentage if set, otherwise the default. */
+    BigDecimal platformFee(BigDecimal price, User instructor) {
+        BigDecimal percent = instructor.getPlatformFeePercent() != null
+                ? instructor.getPlatformFeePercent()
+                : stripeCredentialConfig.getPlatformFeePercent();
+        return price.multiply(percent).divide(ONE_HUNDRED, 2, RoundingMode.HALF_UP);
     }
 
     /** Status of the current user's payment, read by the page Stripe Checkout returns to. */

@@ -96,6 +96,8 @@ stripe:
   # (the same whsec_ as above); in production a separate Connect endpoint in the dashboard.
   connectWebhookSecret: ${STRIPE_CONNECT_WEBHOOK_SECRET:}
   payoutsUrl: ${STRIPE_PAYOUTS_URL:http://localhost:4200/payouts}
+  # Percent of each sale the platform keeps; set users.platform_fee_percent to change it for one instructor.
+  platformFeePercent: ${PLATFORM_FEE_PERCENT:10}
 
 assistant:
   # Turns the /api/v1/assistant chat off without a redeploy of the frontend.

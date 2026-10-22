@@ -9,6 +9,7 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,4 +57,7 @@ public class User extends Auditable {
     private boolean stripeChargesEnabled;
     @NotAudited
     private boolean stripePayoutsEnabled;
+    // The platform's cut of this instructor's sales in percent; null means stripe.platformFeePercent.
+    @NotAudited
+    private BigDecimal platformFeePercent;
 }

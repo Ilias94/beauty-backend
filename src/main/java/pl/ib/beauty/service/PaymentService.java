@@ -48,6 +48,11 @@ public class PaymentService {
         User user = userService.currentLoginUser();
         Course courseById = courseService.getCourseById(courseId);
 
+        // The payment would go back to the instructor's own account, less the platform's fee.
+        if (courseById.getCreator() != null && Objects.equals(courseById.getCreator().getId(), user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot enroll in your own course");
+        }
+
         if (courseById.getEndDate() != null && courseById.getEndDate().isBefore(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot enroll in a past course");
         }

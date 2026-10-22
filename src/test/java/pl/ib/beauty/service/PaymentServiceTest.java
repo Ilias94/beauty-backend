@@ -106,6 +106,19 @@ class PaymentServiceTest {
     }
 
     @Test
+    void anInstructorCantBuyTheirOwnCourse() {
+        paidCourse("299.00");
+        connect(instructor);
+        when(userService.currentLoginUser()).thenReturn(instructor);
+
+        assertThatThrownBy(() -> service.createPayment(20L))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN));
+        verify(paymentRepository, never()).save(any());
+        verify(stripeService, never()).createSession(any(), any(), anyString(), anyString(), any());
+    }
+
+    @Test
     void paidCheckoutEnrolsTheStudentAndNotifiesTheInstructor() {
         service.handleCheckoutEvent("checkout.session.completed", session("paid"));
 

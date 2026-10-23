@@ -94,6 +94,31 @@ class PaymentServiceTest {
     }
 
     @Test
+    void aFullCourseIsCountedInTheDatabaseNotFromTheCachedCourse() {
+        // The cached course comes without its participants, so it always looks empty.
+        paidCourse("299.00");
+        connect(instructor);
+        when(userRepository.countByCoursesParticipating_Id(20L)).thenReturn(10L);
+
+        assertThatThrownBy(() -> service.createPayment(20L))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getReason()).isEqualTo("Course is full"));
+        verify(stripeService, never()).createSession(any(), any(), anyString(), anyString(), any());
+    }
+
+    @Test
+    void someoneAlreadyEnrolledCantPayTwice() {
+        paidCourse("299.00");
+        connect(instructor);
+        when(userRepository.existsByIdAndCoursesParticipating_Id(2L, 20L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.createPayment(20L))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getReason()).isEqualTo("Already enrolled in this course"));
+        verify(stripeService, never()).createSession(any(), any(), anyString(), anyString(), any());
+    }
+
+    @Test
     void noCheckoutWhileTheInstructorCantTakePayments() {
         paidCourse("299.00");
         when(userRepository.findById(1L)).thenReturn(Optional.of(instructor));

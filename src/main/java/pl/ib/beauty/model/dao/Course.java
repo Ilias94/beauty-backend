@@ -5,6 +5,8 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.IdentifiedDataSerializable;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.Hibernate;
+import org.hibernate.LazyInitializationException;
 import org.hibernate.envers.NotAudited;
 import pl.ib.beauty.model.CourseLevel;
 import pl.ib.beauty.model.CourseStatus;
@@ -75,6 +77,10 @@ public class Course implements IdentifiedDataSerializable {
     @NotAudited
     private List<User> participants = new ArrayList<>();
 
+    // The participants themselves aren't cached, only how many there are; null on a course read from the database.
+    @Transient
+    private Integer cachedParticipantCount;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
@@ -82,6 +88,26 @@ public class Course implements IdentifiedDataSerializable {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    /** How many people are enrolled: from the cache entry for a cached course, else from its participants. */
+    public int participantCount() {
+        if (cachedParticipantCount != null) {
+            return cachedParticipantCount;
+        }
+        return participants != null ? participants.size() : 0;
+    }
+
+    /** The count, or -1 when the participants weren't loaded and the session that could load them is gone. */
+    private int participantCountIfLoaded() {
+        if (cachedParticipantCount == null && participants != null && !Hibernate.isInitialized(participants)) {
+            try {
+                return participants.size();
+            } catch (LazyInitializationException e) {
+                return -1;
+            }
+        }
+        return participantCount();
+    }
 
     @Override
     public int getFactoryId() {
@@ -122,6 +148,8 @@ public class Course implements IdentifiedDataSerializable {
         out.writeString(creator.getLastName());
         // added in V31
         out.writeInt(ratingCount);
+        // Without it a cached course looked empty: no seats taken, nobody enrolled.
+        out.writeInt(participantCountIfLoaded());
     }
 
     @Override
@@ -183,6 +211,13 @@ public class Course implements IdentifiedDataSerializable {
             this.ratingCount = in.readInt();
         } catch (Exception ignored) {
             // cached before V31
+            return;
+        }
+        try {
+            int count = in.readInt();
+            this.cachedParticipantCount = count >= 0 ? count : null;
+        } catch (Exception ignored) {
+            // cached before the participant count was; left null, so the count comes from the (empty) list
         }
     }
 }

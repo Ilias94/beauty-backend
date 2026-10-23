@@ -15,4 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long>, RevisionRepos
 
     /** Whether the user is enrolled in the course. */
     boolean existsByIdAndCoursesParticipating_Id(Long userId, Long courseId);
+
+    /** How many people are enrolled in the course. */
+    long countByCoursesParticipating_Id(Long courseId);
 }

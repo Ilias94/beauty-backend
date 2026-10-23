@@ -57,12 +57,12 @@ public class PaymentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot enroll in a past course");
         }
 
-        if (courseById.getParticipants() != null &&
-                courseById.getParticipants().size() >= courseById.getMaxParticipants()) {
+        // Seats and enrolment are counted in the database: the cached course doesn't carry its participants.
+        if (userRepository.countByCoursesParticipating_Id(courseId) >= courseById.getMaxParticipants()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Course is full");
         }
 
-        if (courseById.getParticipants() != null && courseById.getParticipants().contains(user)) {
+        if (userRepository.existsByIdAndCoursesParticipating_Id(user.getId(), courseId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Already enrolled in this course");
         }
 

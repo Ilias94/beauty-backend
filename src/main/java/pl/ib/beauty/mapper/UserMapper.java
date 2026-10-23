@@ -6,7 +6,6 @@ import org.mapstruct.Named;
 import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.Role;
 import pl.ib.beauty.model.dao.User;
-import pl.ib.beauty.model.dao.UserCsv;
 import pl.ib.beauty.model.dto.UserDtoRequest;
 import pl.ib.beauty.model.dto.UserDtoResponse;
 
@@ -58,8 +57,6 @@ public interface UserMapper extends AuditableMapper<User, UserDtoResponse> {
                 .map(Course::getId)
                 .toList();
     }
-
-    UserCsv userToCsv(User user);
 
     List<UserDtoResponse> userToDtoList(List<User> users);
 }

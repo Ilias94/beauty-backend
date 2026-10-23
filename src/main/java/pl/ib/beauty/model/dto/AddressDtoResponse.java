@@ -7,6 +7,6 @@ public record AddressDtoResponse(Long id,
                                  String apartmentNumber,
                                  String city,
                                  String postalCode,
-                                 double lat,
-                                 double lng) {
+                                 Double lat,
+                                 Double lng) {
 }

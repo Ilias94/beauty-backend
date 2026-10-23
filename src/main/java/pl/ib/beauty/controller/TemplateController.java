@@ -1,5 +1,6 @@
 package pl.ib.beauty.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,8 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/templates")
+// E-mail templates are rendered by Thymeleaf and sent in the platform's name: admin only.
+@PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 public class TemplateController {
 
     private final TemplateService templateService;

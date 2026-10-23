@@ -1,5 +1,6 @@
 package pl.ib.beauty.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +26,9 @@ public class QuestionController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    void create(@RequestBody QuestionDtoRequest questionRequest) {
+    // A quiz is its course's instructor's to write, and only enrolled people (and the instructor) may read it.
+    @PreAuthorize("isAuthenticated() and (@securityService.isCourseCreator(#questionRequest.courseId()) or hasAuthority('SCOPE_ADMIN'))")
+    public void create(@RequestBody QuestionDtoRequest questionRequest) {
         questionService.create(questionMapper.toQuestion(questionRequest.questionDetail()), questionRequest.courseId());
     }
 
@@ -37,6 +40,7 @@ public class QuestionController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated() and (@securityService.canAccessCourseMaterials(#courseId) or hasAuthority('SCOPE_ADMIN'))")
     public List<QuestionDtoResponse> findQuestionsByCourseId(@RequestParam Long courseId) {
         return questionMapper.toResponses(questionService.getByCourse(courseId));
     }
@@ -44,6 +48,7 @@ public class QuestionController {
     @DeleteMapping("/{id}")
     @Operation(operationId = "delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("isAuthenticated() and (@securityService.isQuestionOwner(#id) or hasAuthority('SCOPE_ADMIN'))")
     public void delete(@PathVariable Long id) {
         questionService.delete(id);
     }

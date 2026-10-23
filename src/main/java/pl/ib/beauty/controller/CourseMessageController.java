@@ -1,5 +1,6 @@
 package pl.ib.beauty.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/v1/courses/{courseId}/messages", produces = MediaType.APPLICATION_JSON_VALUE)
+@PreAuthorize("isAuthenticated()")
 public class CourseMessageController {
 
     private final CourseMessageService courseMessageService;

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,26 +20,16 @@ import pl.ib.beauty.report.service.ReportGeneratorService;
 public class ReportController {
     private final ReportGeneratorService excelGeneratorService;
 
+    /** The course's participant list as a spreadsheet: names and e-mails, so only its instructor (or an admin). */
     @ApiResponse(content = @Content(schema = @Schema(type = "string", format = "binary")))
     @GetMapping("/excel")
+    @PreAuthorize("isAuthenticated() and (hasAuthority('SCOPE_ADMIN') or @securityService.isCourseCreator(#courseId))")
     public ResponseEntity<byte[]> generateReportExcel(@RequestParam Long courseId) {
         byte[] file = excelGeneratorService.generateExcel(courseId);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.length));
         httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=report.xls");
+        httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=uczestnicy-kurs-%s.xls".formatted(courseId));
         return ResponseEntity.ok().headers(httpHeaders).body(file);
-    }
-
-    @ApiResponse(content = @Content(schema = @Schema(type = "string", format = "binary")))
-    @GetMapping("/csv")
-    public ResponseEntity<byte[]> generateReportCsv(@RequestParam Long courseId) {
-
-        byte[] csvFile = excelGeneratorService.generateCsv(courseId);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(csvFile.length));
-        httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=report%s.csv".formatted(courseId));
-        return ResponseEntity.ok().headers(httpHeaders).body(csvFile);
     }
 }

@@ -1,5 +1,6 @@
 package pl.ib.beauty.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +22,8 @@ public class CommentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    // Reviews come from people who took the course.
+    @PreAuthorize("isAuthenticated() and @securityService.isEnrolled(#commentDtoRequest.courseId())")
     public CommentDtoResponse createComment(@RequestBody CommentDtoRequest commentDtoRequest) {
         return commentMapper.commentToCommentDto(commentService.saveComment(commentDtoRequest.content(), commentDtoRequest.courseId(), commentDtoRequest.parentId()));
     }
@@ -31,6 +34,7 @@ public class CommentController {
     }
 
     @GetMapping("/current")
+    @PreAuthorize("isAuthenticated()")
     public List<CommentDtoResponse> getCurrentUserComments() {
         return commentMapper.commentsToCommentsDto(commentService.getCommentsByAuthorId());
     }

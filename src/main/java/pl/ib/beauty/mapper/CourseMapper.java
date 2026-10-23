@@ -14,7 +14,7 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = {AddressMapper.class})
 public interface CourseMapper {
     @Mapping(source = "creator", target = "creator", qualifiedByName = "creator")
-    @Mapping(target = "participantCount", expression = "java(course.getParticipants() != null ? course.getParticipants().size() : 0)")
+    @Mapping(target = "participantCount", expression = "java(course.participantCount())")
     @Mapping(source = "parentCourse.id", target = "parentCourseId")
     CourseDtoResponse courseToDto(Course course);
 

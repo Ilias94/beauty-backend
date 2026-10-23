@@ -1,6 +1,5 @@
 package pl.ib.beauty.service;
 
-import com.google.maps.model.LatLng;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,8 +8,10 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -122,13 +123,7 @@ public class CourseService {
             course.setCourseType(CourseType.IN_PERSON);
         }
         if (course.getAddress() != null) {
-            String address = course.getAddress().getStreet() + ", " + course.getAddress().getStreetNumber() + ", " +
-                    course.getAddress().getApartmentNumber() + ", " + course.getAddress().getCity() + ", " + course.getAddress().getPostalCode();
-            LatLng latLng = geoCodingService.getGeoCoding(address);
-            if (null != latLng) {
-                course.getAddress().setLat(latLng.lat);
-                course.getAddress().setLng(latLng.lng);
-            }
+            geoCodingService.locate(course.getAddress());
         }
         return courseRepository.save(course);
     }
@@ -141,20 +136,60 @@ public class CourseService {
         Course existingCourse = courseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + id));
 
+        // People who already booked keep their seats: the group can't shrink below them.
+        int booked = existingCourse.getParticipants() != null ? existingCourse.getParticipants().size() : 0;
+        if (course.getMaxParticipants() < booked) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "The group can't be smaller than the " + booked + " people already enrolled");
+        }
+
         existingCourse.setTitle(course.getTitle());
         existingCourse.setDescription(course.getDescription());
         existingCourse.setStartDate(course.getStartDate());
         existingCourse.setEndDate(course.getEndDate());
         existingCourse.setMaxParticipants(course.getMaxParticipants());
         existingCourse.setCourseType(course.getCourseType() != null ? course.getCourseType() : CourseType.IN_PERSON);
+        // A new price applies to new bookings; what people paid is in their payments.
+        existingCourse.setPrice(course.getPrice());
+        if (course.getCourseLevel() != null) existingCourse.setCourseLevel(course.getCourseLevel());
+        if (course.getStatus() != null) existingCourse.setStatus(course.getStatus());
+        if (course.getLanguage() != null) existingCourse.setLanguage(course.getLanguage());
+        existingCourse.setPrerequisites(course.getPrerequisites());
+        existingCourse.setLearningOutcomes(course.getLearningOutcomes());
+        existingCourse.setCertificate(course.isCertificate());
+        locateChangedAddress(course.getAddress(), existingCourse.getAddress());
         existingCourse.setAddress(course.getAddress());
-
-        Long categoryId = course.getCategory().getId();
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + categoryId));
-        existingCourse.setCategory(category);
+        existingCourse.setCategory(resolveCategory(course.getCategory()));
 
         return courseRepository.save(existingCourse);
+    }
+
+    /** The category by id when given, else by label: the course wizard knows categories by their label. */
+    private Category resolveCategory(Category requested) {
+        if (requested == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A course needs a category");
+        }
+        if (requested.getId() != null) {
+            return categoryRepository.findById(requested.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + requested.getId()));
+        }
+        return categoryRepository.findByLabel(requested.getLabel())
+                .orElseThrow(() -> new EntityNotFoundException("Category not found with label: " + requested.getLabel()));
+    }
+
+    /** An edited address keeps its map pin when the place is the same, and is looked up again when it moved. */
+    private void locateChangedAddress(Address address, Address previous) {
+        if (address == null) {
+            return;
+        }
+        boolean samePlace = previous != null && previous.getLat() != null
+                && GeoCodingService.queryFor(previous).equals(GeoCodingService.queryFor(address));
+        if (samePlace) {
+            address.setLat(previous.getLat());
+            address.setLng(previous.getLng());
+        } else {
+            geoCodingService.locate(address);
+        }
     }
 
     @Transactional

@@ -23,6 +23,10 @@ spring:
   jackson:
     serialization:
       fail-on-empty-beans: false
+    # Jackson 3 (Spring Boot 4) rejects a missing value for an int/double/boolean field, which broke
+    # requests that leave such fields out; keep Boot 3's behaviour of reading them as 0/false.
+    deserialization:
+      fail-on-null-for-primitives: false
   # Course photos arrive resized in the browser; the limits leave room for a gallery sent in one go.
   servlet:
     multipart:
@@ -85,6 +89,8 @@ aws:
 
 google:
   accessKey: ${GOOGLE_ACCESS_KEY}
+  # After startup, looks up map coordinates for addresses saved without them.
+  backfill-coordinates: ${GOOGLE_BACKFILL_COORDINATES:true}
 
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
@@ -96,6 +102,8 @@ stripe:
   # (the same whsec_ as above); in production a separate Connect endpoint in the dashboard.
   connectWebhookSecret: ${STRIPE_CONNECT_WEBHOOK_SECRET:}
   payoutsUrl: ${STRIPE_PAYOUTS_URL:http://localhost:4200/payouts}
+  # Percent of each sale the platform keeps; set users.platform_fee_percent to change it for one instructor.
+  platformFeePercent: ${PLATFORM_FEE_PERCENT:10}
 
 assistant:
   # Turns the /api/v1/assistant chat off without a redeploy of the frontend.

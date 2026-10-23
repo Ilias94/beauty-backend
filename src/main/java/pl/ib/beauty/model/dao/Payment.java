@@ -32,4 +32,7 @@ public class Payment {
     private String currency;
     private String stripeSessionId;
     private String stripePaymentIntentId;
+    // The platform's fee out of amount; the rest is transferred to destinationAccount, the instructor's.
+    private BigDecimal platformFee;
+    private String destinationAccount;
 }

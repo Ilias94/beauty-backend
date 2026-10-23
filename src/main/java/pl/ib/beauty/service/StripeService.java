@@ -41,11 +41,28 @@ public class StripeService {
         Stripe.apiKey = stripeCredentialConfig.getSecretKey();
     }
 
+    /**
+     * A destination charge: the instructor's account is the merchant (on_behalf_of), the payment is transferred to
+     * it, and the platform keeps platformFee out of it. Stripe then pays the instructor out on its own schedule.
+     */
     @SneakyThrows
-    public Session createSession(Course course, UUID orderId, String customerEmail) {
+    public Session createSession(Course course, UUID orderId, String customerEmail,
+                                 String instructorAccountId, BigDecimal platformFee) {
         String returnUrl = stripeCredentialConfig.getReturnUrl() + "?orderId=" + orderId;
 
+        SessionCreateParams.PaymentIntentData.Builder paymentIntent = SessionCreateParams.PaymentIntentData.builder()
+                .setOnBehalfOf(instructorAccountId)
+                .setTransferData(SessionCreateParams.PaymentIntentData.TransferData.builder()
+                        .setDestination(instructorAccountId)
+                        .build())
+                .putMetadata("orderId", orderId.toString());
+        // Stripe refuses a zero fee; an instructor without one gets the whole payment.
+        if (platformFee.signum() > 0) {
+            paymentIntent.setApplicationFeeAmount(toMinorUnits(platformFee));
+        }
+
         SessionCreateParams params = SessionCreateParams.builder()
+                .setPaymentIntentData(paymentIntent.build())
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setClientReferenceId(orderId.toString())
                 .putMetadata("orderId", orderId.toString())

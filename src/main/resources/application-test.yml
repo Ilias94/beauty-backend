@@ -52,6 +52,8 @@ aws:
 
 google:
   accessKey: ${GOOGLE_ACCESS_KEY}
+  # After startup, looks up map coordinates for addresses saved without them.
+  backfill-coordinates: false
 
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}

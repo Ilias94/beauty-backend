@@ -19,7 +19,7 @@ public class RatingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and @securityService.isEnrolled(#ratingDto.courseId())")
     public RatingDto saveRating(@RequestBody RatingDto ratingDto) {
         return ratingMapper.ratingToRatingDto(ratingService.saveRating(ratingDto.courseId(), ratingDto.value(), ratingDto.instructorRating()));
     }
@@ -30,6 +30,7 @@ public class RatingController {
     }
 
     @GetMapping("/{courseId}")
+    @PreAuthorize("isAuthenticated()")
     public RatingDto getCurrentUserRatingByCourseId(@PathVariable Long courseId) {
         return ratingMapper.ratingToRatingDto(ratingService.getCurrentUserRatingByCourseId(courseId));
     }

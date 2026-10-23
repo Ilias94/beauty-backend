@@ -8,5 +8,7 @@ import java.util.List;
 public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByCourseId(Long courseId);
 
+    boolean existsByIdAndCourse_Creator_Id(Long questionId, Long creatorId);
+
 
 }

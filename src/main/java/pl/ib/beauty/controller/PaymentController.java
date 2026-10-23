@@ -22,6 +22,7 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public CreatePaymentDtoResponse createPayment(@RequestBody CreatePaymentDtoRequest createPaymentDto) {
         String payment = paymentService.createPayment(createPaymentDto.courseId());
         return new CreatePaymentDtoResponse(payment);

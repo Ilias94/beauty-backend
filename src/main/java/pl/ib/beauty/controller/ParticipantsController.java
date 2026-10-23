@@ -1,5 +1,6 @@
 package pl.ib.beauty.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,8 @@ public class ParticipantsController {
     private final UserMapper userMapper;
 
     @GetMapping("{courseId}")
+    // Names and e-mails: for the course's instructor only.
+    @PreAuthorize("isAuthenticated() and (@securityService.isCourseCreator(#courseId) or hasAuthority('SCOPE_ADMIN'))")
     public List<UserDtoResponse> getParticipants(@PathVariable Long courseId) {
         List<User> courseParticipants = courseService.getCourseParticipants(courseId);
         return userMapper.userToDtoList(courseParticipants);

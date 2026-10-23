@@ -1,5 +1,6 @@
 package pl.ib.beauty.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,11 +33,14 @@ public class CategoryController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    // The catalog categories are the platform's; only an admin changes them.
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public CategoryDtoResponse createCategory(@RequestBody @Valid CategoryDtoRequest categoryDtoRequest) {
         return categoryMapper.categoryToCategoryDto(categoryService.createCategory(categoryMapper.categoryDtoToCategory(categoryDtoRequest)));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public CategoryDtoResponse updateCategory(@PathVariable Long id, @RequestBody @Valid CategoryDtoRequest categoryDtoRequest) {
 
         return categoryMapper.categoryToCategoryDto(categoryService.updateCategory(id, categoryDtoRequest));
@@ -44,6 +48,7 @@ public class CategoryController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public void deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategoryById(id);
     }

@@ -55,11 +55,14 @@ public class UserController {
     }
 
     @GetMapping("/current")
+    @PreAuthorize("isAuthenticated()")
     public UserDtoResponse getCurrentLoginUser() {
         return userMapper.userToDto(userService.currentLoginUser());
     }
 
     @GetMapping("{id}")
+    // A user's e-mail, roles and courses: their own, or an admin's to see.
+    @PreAuthorize("isAuthenticated() && (@securityService.hasAccessToUser(#id) || hasAuthority('SCOPE_ADMIN'))")
     public UserDtoResponse findUserById(@PathVariable Long id) {
         return userMapper.userToDto(userService.getById(id));
     }
@@ -67,7 +70,7 @@ public class UserController {
     @PutMapping("{id}/change-password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated() && (@securityService.hasAccessToUser(#id) || hasAuthority('SCOPE_ADMIN'))")
-    public void changePassword(@RequestBody @Valid ChangePasswordDtoRequest passwordRequest) {
+    public void changePassword(@PathVariable Long id, @RequestBody @Valid ChangePasswordDtoRequest passwordRequest) {
         userService.changePassword(passwordRequest);
     }
 }

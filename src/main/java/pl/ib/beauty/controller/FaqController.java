@@ -41,11 +41,13 @@ public class FaqController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_SUPPORT')")
     public FaqDtoResponse create(@RequestBody @Valid FaqDtoRequest request) {
         return faqMapper.faqToFaqDto(faqService.create(faqMapper.faqDtoToFaq(request)));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_SUPPORT')")
     public FaqDtoResponse update(@PathVariable UUID id, @RequestBody @Valid FaqDtoRequest request) {
         return faqMapper.faqToFaqDto(faqService.update(id, request));
     }
@@ -53,6 +55,7 @@ public class FaqController {
     @DeleteMapping("/{id}")
     @Operation(operationId = "deleteFaq")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_SUPPORT')")
     public void delete(@PathVariable UUID id) {
         faqService.deleteById(id);
     }

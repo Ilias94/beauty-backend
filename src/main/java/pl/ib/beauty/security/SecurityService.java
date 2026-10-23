@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.ib.beauty.model.dao.Course;
 import pl.ib.beauty.model.dao.User;
+import pl.ib.beauty.repository.QuestionRepository;
 import pl.ib.beauty.repository.UserRepository;
 import pl.ib.beauty.repository.VideoRepository;
 import pl.ib.beauty.service.CourseService;
@@ -17,6 +18,7 @@ public class SecurityService {
     private final CourseService courseService;
     private final UserRepository userRepository;
     private final VideoRepository videoRepository;
+    private final QuestionRepository questionRepository;
 
     public boolean hasAccessToUser(Long id) {
         User user = userService.currentLoginUser();
@@ -33,6 +35,18 @@ public class SecurityService {
     public boolean canAccessCourseMaterials(Long courseId) {
         User currentUser = userService.currentLoginUser();
         return isCourseCreator(courseId) || userRepository.existsByIdAndCoursesParticipating_Id(currentUser.getId(), courseId);
+    }
+
+    /** Took part in the course: what rating and reviewing it requires. */
+    public boolean isEnrolled(Long courseId) {
+        User currentUser = userService.currentLoginUser();
+        return courseId != null && userRepository.existsByIdAndCoursesParticipating_Id(currentUser.getId(), courseId);
+    }
+
+    /** The question belongs to a quiz of one of the current user's courses. */
+    public boolean isQuestionOwner(Long questionId) {
+        User currentUser = userService.currentLoginUser();
+        return questionRepository.existsByIdAndCourse_Creator_Id(questionId, currentUser.getId());
     }
 
     public boolean isVideoOwner(Long videoId) {
